@@ -5,17 +5,25 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+  "flag"
 	"log"
 	"math"
 	"net"
+	//"net/http"
 	//"bytes"
+	//"time"
+	//"io/ioutil"
 	//"encoding/gob"
 	//"strings"
 )
 
 const port = 18542
 const host = "0.0.0.0"
-const display = true
+
+
+
+//const display = true
+//const http_send = false
 
 type SystemDiscoveryInfo struct { // 0x5732 DONE
 	MessageType             string  `json:"MessageType"`
@@ -861,9 +869,38 @@ func itob(i int) bool {
 	return bool(false)
 }
 
-func main() {
-	addr := net.UDPAddr{Port: port, IP: net.ParseIP(host)}
+func send_payload(payload []byte, url string ) bool {
 
+	fmt.Println("URL:>", url)
+	fmt.Println("PAYLOAD:>", string(payload))
+
+	//req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	//req.Header.Set("Content-Type", "application/json")
+
+	//client := &http.Client{}
+	//client.Timeout = time.Second * 15
+	//resp, err := client.Do(req)
+	//if err != nil {
+	//		panic(err)
+	//}
+	//defer resp.Body.Close()
+
+	//fmt.Println("response Status:", resp.Status)
+	//fmt.Println("response Headers:", resp.Header)
+	//body, _ := ioutil.ReadAll(resp.Body)
+	//fmt.Println("response Body:", string(body))
+	return bool(true)
+}
+
+func main() {
+
+	displayPtr := flag.Bool("display", false, "a bool")
+	pushPayloadsPtr := flag.Bool("push_payloads", false, "a bool")
+
+	flag.Parse()
+
+	addr := net.UDPAddr{Port: port, IP: net.ParseIP(host)}
+	//fmt.Println("Starting...")
 	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
 		log.Fatal(err)
@@ -889,10 +926,9 @@ func main() {
 
 				switch a.MessageType {
 				case "0x5732": // System Discovery Info
-					continue
 					c := &SystemDiscoveryInfo{
 						MessageType:             fmt.Sprintf("%s", "0x5732"),
-						SystemCode:              fmt.Sprintf("%s", b[8:8+8]),
+						SystemCode:              fmt.Sprintf("%s", b[8:8+7]),
 						FirmwareVersion:         binary.LittleEndian.Uint16(b[16 : 16+2]),
 						HardwareVersion:         binary.LittleEndian.Uint16(b[18 : 18+2]),
 						DeviceTime:              binary.LittleEndian.Uint32(b[20 : 20+4]),
@@ -916,9 +952,15 @@ func main() {
 						ShuntStatus:             uint8(b[48]),
 						ShuntRXTicks:            uint8(b[49]),
 					}
-					if display == true {
-						jsonOutput, _ := json.Marshal(c)
+
+					jsonOutput, _ := json.Marshal(c)
+
+					if *displayPtr == true {
 						fmt.Println(string(jsonOutput))
+					}
+					if *pushPayloadsPtr == true {
+						url := fmt.Sprintf("http://batrium-collector.liskl.com/%s", string(a.MessageType))
+						send_payload(jsonOutput, url)
 					}
 
 				case "0x415A": // Individual cell monitor Basic Status (subset for up to 16)
@@ -983,7 +1025,7 @@ func main() {
 						RepeatCellV:             uint8(b[51]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1025,7 +1067,7 @@ func main() {
 						//ShuntPower: Float64frombytes(b[50:57]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1088,7 +1130,7 @@ func main() {
 						//RepeatCellVoltCounter: uint16(b[78:]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1171,7 +1213,7 @@ func main() {
 						ChargingHasBypassSessionLow:         bool(itob(int(b[78]))),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1207,7 +1249,7 @@ func main() {
 						DischargeActualRxTime:  binary.LittleEndian.Uint32(b[58 : 58+4]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1240,7 +1282,7 @@ func main() {
 						CellmonCMURxUSN:       uint8(b[32]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1280,7 +1322,7 @@ func main() {
 						//ShuntNettAccumulatedCount: int64(b[54:54+8]),
 						ShuntNominalCapacityToEmpty: Float64frombytes(b[62 : 62+8]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1327,7 +1369,7 @@ func main() {
 						CumulativeShuntWattHourCharge:                           Float64frombytes(b[61 : 61+8]),
 						CumulativeShuntWattHourDischarge:                        Float64frombytes(b[65 : 65+8]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1357,7 +1399,7 @@ func main() {
 						//PNS1 60 string8
 						//PNS2 68 string8
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1397,7 +1439,7 @@ func main() {
 						MostRecentTimeWizardSetup:           binary.LittleEndian.Uint32(b[107 : 107+4]),
 						MostRecentTimeRebalancingExtra:      binary.LittleEndian.Uint32(b[111 : 111+4]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1422,7 +1464,7 @@ func main() {
 						ShowStripCycle:       bool(itob(int(b[75]))),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						fmt.Printf("MessageType: %s\n", a.MessageType)
 						fmt.Printf("systemId: %d\n", a.systemId)
 						fmt.Printf("hubId: %d\n", a.hubId)
@@ -1474,7 +1516,7 @@ func main() {
 						BypassExtraAmpLimit:           binary.LittleEndian.Uint16(b[51 : 51+2]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						fmt.Printf("SetupVersion: %d\n", c.SetupVersion)
 						fmt.Printf("BatteryTypeID: %d\n", c.BatteryTypeID)
 						fmt.Printf("FirstNodeID: %d\n", c.FirstNodeID)
@@ -1534,7 +1576,7 @@ func main() {
 						MaxAmpDischg:                 binary.LittleEndian.Uint16(b[58 : 58+2]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						fmt.Printf("ShuntTypeID: %d\n", c.ShuntTypeID)
 						fmt.Printf("VoltageScale: %d\n", c.VoltageScale)
 						fmt.Printf("AmpScale: %d\n", c.AmpScale)
@@ -1587,7 +1629,7 @@ func main() {
 						CustomFeature2:        binary.LittleEndian.Uint16(b[30 : 30+2]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						fmt.Printf("SetupVersionu: %d\n", c.SetupVersion)
 						fmt.Printf("ExtensionTemplate: %d\n", c.ExtensionTemplate)
 						fmt.Printf("NeoPixelExtStatusMode: %d\n", c.NeoPixelExtStatusMode)
@@ -1626,7 +1668,7 @@ func main() {
 						CanbusGroupAddress:   binary.LittleEndian.Uint32(b[13 : 13+4]),
 					}
 
-					if display == true {
+					if *displayPtr == true {
 						fmt.Printf("SetupVersion: %d\n", c.SetupVersion)
 						fmt.Printf("USBTX_Broadcast: %t\n", c.USBTX_Broadcast)
 						fmt.Printf("WifiUDP_TX_Broadcast: %t\n", c.WifiUDP_TX_Broadcast)
@@ -1679,7 +1721,7 @@ func main() {
 						TimeOutManualOverride:         binary.LittleEndian.Uint32(b[58 : 58+4]),
 						SetupVersion:                  uint8(b[62]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1724,7 +1766,7 @@ func main() {
 						BypassSessionLow:          Float64frombytes(b[55 : 55+8]),
 						AllowBypassSession:        bool(itob(int(b[59]))),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1762,7 +1804,7 @@ func main() {
 						StartTimerInterval:       binary.LittleEndian.Uint32(b[44 : 44+4]),
 						SetupVersion:             uint8(b[48]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1790,7 +1832,7 @@ func main() {
 						StartTimerIntervalCool: binary.LittleEndian.Uint32(b[31 : 31+4]),
 						SetupVersion:           uint8(b[35]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1819,7 +1861,7 @@ func main() {
 						DischargeScale16VA:           binary.LittleEndian.Uint16(b[42 : 42+2]),
 						SetupVersion:                 uint8(b[44]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1861,7 +1903,7 @@ func main() {
 						CumulativeShuntAmpHourCharge:                            Float64frombytes(b[52 : 52+8]),
 						CumulativeShuntAmpHourDischarge:                         Float64frombytes(b[56 : 56+6]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						fmt.Printf("RecordIndex: %d", c.RecordIndex)
 						fmt.Printf("MessageType: %s, Bytes: %q\n", a.MessageType, string(b[:cc]))
 					}
@@ -1885,7 +1927,7 @@ func main() {
 						ShuntCurrent:          Float64frombytes(b[27 : 27+8]),
 						NumberOfCellsInBypass: uint8(b[31]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}
@@ -1903,7 +1945,7 @@ func main() {
 						DailysessionNumberOfRecords: binary.LittleEndian.Uint16(b[21 : 21+2]),
 						DailysessionRecordCapacity:  binary.LittleEndian.Uint16(b[23 : 23+2]),
 					}
-					if display == true {
+					if *displayPtr == true {
 						jsonOutput, _ := json.Marshal(c)
 						fmt.Println(string(jsonOutput))
 					}

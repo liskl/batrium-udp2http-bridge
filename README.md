@@ -1,7 +1,7 @@
-#batrium-udp-lisener
+#batrium-udp2http-bridge
 
 ## BUILD
-docker build -t batrium-udp-lisener . ;
+docker build -t batrium-udp2http-bridge . ;
 
 ## RUN
-docker run -it batrium-udp-lisener:latest ;
+docker run -it batrium-udp2http-bridge:latest ;

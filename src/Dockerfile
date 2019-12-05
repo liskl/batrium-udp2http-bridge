@@ -8,14 +8,14 @@ ARG RELEASE=unknown
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 
-ENV PROJECT "gogs.infra.liskl.com/liskl/batrium-udp-listener"
+ENV PROJECT "github.com/liskl/batrium-udp2http-bridge"
 ENV RELEASE ${RELEASE}
 ENV COMMIT ${COMMIT}
 ENV BUILD_TIME ${BUILD_TIME}
 
-COPY ./src /go/src
+VOLUME /go/src
 
-WORKDIR /go/src/gogs.infra.liskl.com/liskl/batrium-udp-listener
+WORKDIR /go/src/github.com/liskl/batrium-udp2http-bridge
 
 RUN cd ./UDPmodule \
     && go install ; \
@@ -26,11 +26,11 @@ RUN cd ./UDPmodule \
       -X ${PROJECT}/version.Release=${RELEASE} \
   		-X ${PROJECT}/version.Commit=${COMMIT} \
       -X ${PROJECT}/version.BuildTime=${BUILD_TIME}" \
-  		-o batrium-udp-listener ;
+  		-o batrium-udp2http-bridge ;
 
 
 # final stage
 FROM alpine
 WORKDIR /app
-COPY --from=build-env /go/src/gogs.infra.liskl.com/liskl/batrium-udp-listener/batrium-udp-listener /app/
+COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/batrium-udp2http-bridge /app/
 CMD ["/app/batrium-udp-listener"]
