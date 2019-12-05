@@ -11,7 +11,7 @@ clean:
 	#docker rmi -f "${APP}:${TAG}" || true ;
 
 format:
-	cd ./src/gogs.infra.liskl.com/liskl/${APP} && go fmt ;
+	cd ./src/github.com/liskl/${APP} && go fmt ;
 
 build: clean format
 	docker build \
@@ -27,7 +27,7 @@ run: build
 	 "${REGISTRY}/${APP}:${TAG}" ;
 
 test:
-	 cd ./src/gogs.infra.liskl.com/liskl/${APP} \
+	 cd ./src/github.com/liskl/${APP} \
 	 && clear; go test -v ./... \
 	 && mkdir -p ./tests \
 	 && go test -coverprofile tests/cp.out \
