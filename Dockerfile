@@ -13,9 +13,11 @@ ENV RELEASE ${RELEASE}
 ENV COMMIT ${COMMIT}
 ENV BUILD_TIME ${BUILD_TIME}
 
-COPY ./src /go/src
+COPY ./src /go/src/github.com/liskl/batrium-udp2http-bridge
 
 WORKDIR /go/src/github.com/liskl/batrium-udp2http-bridge
+
+RUN find "$(pwd)"
 
 RUN cd ./UDPmodule \
     && go install ; \
