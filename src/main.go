@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./batrium"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -16,830 +17,6 @@ import (
 const port = 18542
 const host = "0.0.0.0"
 const display = true
-
-type SystemDiscoveryInfo struct { // 0x5732 DONE
-	MessageType             string  `json:"MessageType"`
-	SystemCode              string  `json:"SystemCode"`
-	FirmwareVersion         uint16  `json:"FirmwareVersion"`
-	HardwareVersion         uint16  `json:"HardwareVersion"`
-	DeviceTime              uint32  `json:"DeviceTime"`
-	SystemOpstatus          uint8   `json:"SystemOpstatus"`
-	SystemAuthMode          uint8   `json:"SystemAuthMode"`
-	CriticalBattOkState     bool    `json:"CriticalBattOkState"`
-	ChargePowerRateState    uint8   `json:"ChargePowerRateState"`
-	DischargePowerRateState uint8   `json:"DischargePowerRateState"`
-	HeatOnState             bool    `json:"HeatOnState"`
-	CoolOnState             bool    `json:"CoolOnState"`
-	MinCellVolt             uint16  `json:"MinCellVolt"`
-	MaxCellVolt             uint16  `json:"MaxCellVolt"`
-	AvgCellVolt             uint16  `json:"AvgCellVolt"`
-	MinCellTemp             uint8   `json:"MinCellTemp"`
-	NumOfActiveCellmons     uint8   `json:"NumOfActiveCellmons"`
-	CMUPortRxUSN            uint8   `json:"CMUPortRxUSN"`
-	CMUPollerMode           uint8   `json:"CMUPollerMode"`
-	ShuntSoC                uint8   `json:"ShuntSoC"`
-	ShuntVoltage            uint16  `json:"ShuntVoltage"`
-	ShuntCurrent            float64 `json:"ShuntCurrent"`
-	ShuntStatus             uint8   `json:"ShuntStatus"`
-	ShuntRXTicks            uint8   `json:"ShuntRXTicks"`
-}
-type IndividualCellMonitorBasicStatus struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	cmu_port    uint8 `json:"cmu_port"`
-	records     uint8 `json:"records"`
-	firstNodeId uint8 `json:"firstNodeId"`
-	lastNodeId  uint8 `json:"lastNodeId"`
-}
-type IndividualCellMonitorFullInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	NodeId                  uint8  `json:"NodeId"`
-	USN                     uint8  `json:"USN"`
-	MinCellVoltage          uint16 `json:"MinCellVoltage"`
-	MaxCellVoltage          uint16 `json:"MaxCellVoltage"`
-	MaxCellTemp             uint8  `json:"MaxCellTemp"`
-	BypassTemp              uint8  `json:"BypassTemp"`
-	BypassAmp               uint16 `json:"BypassAmp"`
-	Status                  uint8  `json:"Status"`
-	ErrorDataCounter        uint8  `json:"ErrorDataCounter"`
-	ResetCounter            uint8  `json:"ResetCounter"`
-	IsOverdue               uint8  `json:"IsOverdue"`
-	ParamLowCellVoltage     uint16 `json:"ParamLowCellVoltage"`
-	ParamHighCellVoltage    uint16 `json:"ParamHighCellVoltage"`
-	ParamBypassVoltageLevel uint16 `json:"ParamBypassVoltageLevel"`
-	ParamBypassAmp          uint16 `json:"ParamBypassAmp"`
-	ParamBypassTempLimit    uint8  `json:"ParamBypassTempLimit"`
-	ParamHighCellTemp       uint8  `json:"ParamHighCellTemp"`
-	ParamRawVoltCalOffset   uint8  `json:"ParamRawVoltCalOffset"`
-	DeviceFWVersion         uint16 `json:"DeviceFWVersion"`
-	DeviceHWVersion         uint16 `json:"DeviceHWVersion"`
-	DeviceBootVersion       uint16 `json:"DeviceBootVersion"`
-	DeviceSerialNum         uint32 `json:"DeviceSerialNum"`
-	BypassInitialDate       uint32 `json:"BypassInitialDate"`
-	BypassSessionmAh        uint8  `json:"BypassSessionmAh"`
-	RepeatCellV             uint8  `json:"RepeatCellV"`
-}
-type TelemetryCombinedStatusRapidInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	MinCellVoltage                  uint16  `json:"MinCellVoltage"`
-	MaxCellVoltage                  uint16  `json:"MaxCellVoltage"`
-	MinCellVoltReference            uint8   `json:"MinCellVoltReference"`
-	MaxCellVoltReference            uint8   `json:"MaxCellVoltReference"`
-	MinCellTemperature              uint8   `json:"MinCellTemperature"`
-	MaxCellTemperature              uint8   `json:"MaxCellTemperature"`
-	MinCellTempReference            uint8   `json:"MinCellTempReference"`
-	MaxCellTempReference            uint8   `json:"MaxCellTempReference"`
-	MinCellBypassCurrent            uint16  `json:"MinCellBypassCurrent"`
-	MaxCellBypassCurrent            uint16  `json:"MaxCellBypassCurrent"`
-	MinCellBypassRefId              uint8   `json:"MinCellBypassRefId"`
-	MaxCellBypassRefId              uint8   `json:"MaxCellBypassRefId"`
-	MinBypassTemperature            uint8   `json:"MinBypassTemperature"`
-	MaxBypassTemperature            uint8   `json:"MaxBypassTemperature"`
-	MinBypassTempRefId              uint8   `json:"MinBypassTempRefId"`
-	MaxBypassTempRefId              uint8   `json:"MaxBypassTempRefId"`
-	AverageCellVoltage              uint16  `json:"AverageCellVoltage"`
-	AverageCellTemperature          uint8   `json:"AverageCellTemperature"`
-	NumberOfCellsAboveInitialBypass uint8   `json:"NumberOfCellsAboveInitialBypass"`
-	NumberOfCellsAboveFinalBypass   uint8   `json:"NumberOfCellsAboveFinalBypass"`
-	NumberOfCellsInBypass           uint8   `json:"NumberOfCellsInBypass"`
-	NumberOfCellsOverdue            uint8   `json:"NumberOfCellsOverdue"`
-	NumberOfCellsActive             uint8   `json:"NumberOfCellsActive"`
-	NumberOfCellsInSystem           uint8   `json:"NumberOfCellsInSystem"`
-	CMU_PortTX_NodeID               uint8   `json:"CMU_PortTX_NodeID"`
-	CMU_PortRX_NodeID               uint8   `json:"CMU_PortRX_NodeID"`
-	CMU_PortRX_USN                  uint8   `json:"CMU_PortRX_USN"`
-	ShuntVoltage                    uint16  `json:"ShuntVoltage"`
-	ShuntAmp                        float64 `json:"ShuntAmp"`
-	ShuntPower                      float64 `json:"ShuntPower"`
-}
-type TelemetryCombinedStatusFastInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	CMU_PollerMode                           uint8   `json:"CMU_PollerMode"`
-	CMU_PortTX_AckCount                      uint8   `json:"CMU_PortTX_AckCount"`
-	CMU_Port_TX_OpStatusNodeID               uint8   `json:"CMU_Port_TX_OpStatusNodeID"`
-	CMU_Port_TX_OpStatusUSN                  uint8   `json:"CMU_Port_TX_OpStatusUSN"`
-	CMU_Port_TX_OpParameterNodeID            uint8   `json:"CMU_Port_TX_OpParameterNodeID"`
-	GroupMinCellVolt                         uint16  `json:"GroupMinCellVolt"`
-	GroupMaxCellVolt                         uint16  `json:"GroupMaxCellVolt"`
-	GroupMinCellTemp                         uint8   `json:"GroupMinCellTemp"`
-	GroupMaxCellTemp                         uint8   `json:"GroupMaxCellTemp"`
-	CMU_Port_RX_OpStatusNodeID               uint8   `json:"CMU_Port_RX_OpStatusNodeID"`
-	CMU_Port_RX_OpStatusGroupAcknowledgement uint8   `json:"CMU_Port_RX_OpStatusGroupAcknowledgement"`
-	CMU_Port_RX_OpStatusUSN                  uint8   `json:"CMU_Port_RX_OpStatusUSN"`
-	CMU_Port_RX_OpParameterNodeID            uint8   `json:"CMU_Port_RX_OpParameterNodeID"`
-	SystemOpStatus                           uint8   `json:"SystemOpStatus"`
-	SystemAuthMode                           uint8   `json:"SystemAuthMode"`
-	SystemSupplyVolt                         uint16  `json:"SystemSupplyVolt"`
-	SystemAmbientTemp                        uint8   `json:"SystemAmbientTemp"`
-	SystemDeviceTime                         uint32  `json:"SystemDeviceTime"`
-	ShuntStateOfCharge                       uint8   `json:"ShuntStateOfCharge"`
-	ShuntCelsius                             uint8   `json:"ShuntCelsius"`
-	ShuntNominalCapacityToFull               float64 `json:"ShuntNominalCapacityToFull"`
-	ShuntNominalCapacityToEmpty              float64 `json:"ShuntNominalCapacityToEmpty"`
-	ShuntPollerMode                          uint8   `json:"ShuntPollerMode"`
-	ShuntStatus                              uint8   `json:"ShuntStatus"`
-	ShuntLoStateOfChargeReCalibration        bool    `json:"ShuntLoStateOfChargeReCalibration"`
-	ShuntHiStateOfChargeReCalibration        bool    `json:"ShuntHiStateOfChargeReCalibration"`
-	ExpansionOutputBatteryOn                 bool    `json:"ExpansionOutputBatteryOn"`
-	ExpansionOutputBatteryOff                bool    `json:"ExpansionOutputBatteryOff"`
-	ExpansionOutputLoadOn                    bool    `json:"ExpansionOutputLoadOn"`
-	ExpansionOutputLoadOff                   bool    `json:"ExpansionOutputLoadOff"`
-	ExpansionOutputRelay1                    bool    `json:"ExpansionOutputRelay1"`
-	ExpansionOutputRelay2                    bool    `json:"ExpansionOutputRelay2"`
-	ExpansionOutputRelay3                    bool    `json:"ExpansionOutputRelay3"`
-	ExpansionOutputRelay4                    bool    `json:"ExpansionOutputRelay4"`
-	ExpansionOutputPWM1                      uint16  `json:"ExpansionOutputPWM1"`
-	ExpansionOutputPWM2                      uint16  `json:"ExpansionOutputPWM2"`
-	ExpansionInputRunLEDMode                 bool    `json:"ExpansionInputRunLEDMode"`
-	ExpansionInputChargeNormalMode           bool    `json:"ExpansionInputChargeNormalMode"`
-	ExpansionInputBatteryContactor           bool    `json:"ExpansionInputBatteryContactor"`
-	ExpansionInputLoadContactor              bool    `json:"ExpansionInputLoadContactor"`
-	ExpansionInputSignalIn                   uint8   `json:"ExpansionInputSignalIn"`
-	ExpansionInputAIN1                       uint16  `json:"ExpansionInputAIN1"`
-	ExpansionInputAIN2                       uint16  `json:"ExpansionInputAIN2"`
-	MinBypassSession                         float64 `json:"MinBypassSession"`
-	MaxBypassSession                         float64 `json:"MaxBypassSession"`
-	MinBypassSessionReference                uint8   `json:"MinBypassSessionReference"`
-	MaxBypassSessionReference                uint8   `json:"MaxBypassSessionReference"`
-	RebalanceBypassExtra                     bool    `json:"RebalanceBypassExtra"`
-	RepeatCellVoltCounter                    uint16  `json:"RepeatCellVoltCounter"`
-}
-type TelemetryCombinedStatusSlowInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	SysStartupTime                      uint32  `json:"SysStartupTime"`
-	SysProcessControl                   bool    `json:"SysProcessControl"`
-	SysIsInitialStartUp                 bool    `json:"SysIsInitialStartUp"`
-	SysIgnoreWhenCellsOverdue           bool    `json:"SysIgnoreWhenCellsOverdue"`
-	SysIgnoreWhenShuntsOverdue          bool    `json:"SysIgnoreWhenShuntsOverdue"`
-	MonitorDailySessionStatsForSystem   bool    `json:"MonitorDailySessionStatsForSystem"`
-	SetupVersionForSystem               uint8   `json:"SetupVersionForSystem"`
-	SetupVersionForCellGroup            uint8   `json:"SetupVersionForCellGroup"`
-	SetupVersionForShunt                uint8   `json:"SetupVersionForShunt"`
-	SetupVersionForExpansion            uint8   `json:"SetupVersionForExpansion"`
-	SetupVersionForCommsChannel         uint8   `json:"SetupVersionForCommsChannel"`
-	SetupVersionForCritical             uint8   `json:"SetupVersionForCritical"`
-	SetupVersionForCharge               uint8   `json:"SetupVersionForCharge"`
-	SetupVersionForDischarge            uint8   `json:"SetupVersionForDischarge"`
-	SetupVersionForThermal              uint8   `json:"SetupVersionForThermal"`
-	SetupVersionForRemote               uint8   `json:"SetupVersionForRemote"`
-	SetupVersionForScheduler            uint8   `json:"SetupVersionForScheduler"`
-	ShuntEstimatedDurationToFullInMins  uint16  `json:"ShuntEstimatedDurationToFullInMins"`
-	ShuntEstimatedDurationToEmptyInMins uint16  `json:"ShuntEstimatedDurationToEmptyInMins"`
-	ShuntRecentChargemAhAverage         float64 `json:"ShuntRecentChargemAhAverage"`
-	ShuntRecentDischargemAhAverage      float64 `json:"ShuntRecentDischargemAhAverage"`
-	ShuntRecentNettmAh                  float64 `json:"ShuntRecentNettmAh"`
-	HasShuntSoCCountLo                  bool    `json:"HasShuntSoCCountLo"`
-	HasShuntSoCCountHi                  bool    `json:"HasShuntSoCCountHi"`
-	QuickSessionRecentTime              uint32  `json:"QuickSessionRecentTime"`
-	QuickSessionNumberOfRecords         uint16  `json:"QuickSessionNumberOfRecords"`
-	QuickSessionMaxRecords              uint16  `json:"QuickSessionMaxRecords"`
-	ShuntNettAccumulatedCount           int64   `json:"ShuntNettAccumulatedCount"`
-	ShuntNominalCapacityToEmpty         float64 `json:"ShuntNominalCapacityToEmpty"`
-}
-type TelemetryLogicControlStatusInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	CriticalIsBatteryOKCurrentState     bool  `json:"CriticalIsBatteryOKCurrentState"`
-	CriticalIsBatteryOKLiveCalc         bool  `json:"CriticalIsBatteryOKLiveCalc"`
-	CriticalIsTransition                bool  `json:"CriticalIsTransition"`
-	CriticalHasCellsOverdue             bool  `json:"CriticalHasCellsOverdue"`
-	CriticalHasCellsInLowVoltageState   bool  `json:"CriticalHasCellsInLowVoltageState"`
-	CriticalHasCellsInHighVoltageState  bool  `json:"CriticalHasCellsInHighVoltageState"`
-	CriticalHasCellsInLowTemp           bool  `json:"CriticalHasCellsInLowTemp"`
-	CriticalhasCellsInhighTemp          bool  `json:"CriticalhasCellsInhighTemp"`
-	CriticalHasSupplyVoltageLow         bool  `json:"CriticalHasSupplyVoltageLow"`
-	CriticalHasSupplyVoltageHigh        bool  `json:"CriticalHasSupplyVoltageHigh"`
-	CriticalHasAmbientTempLow           bool  `json:"CriticalHasAmbientTempLow"`
-	CriticalHasAmbientTempHigh          bool  `json:"CriticalHasAmbientTempHigh"`
-	CriticalHasShuntVoltageLow          bool  `json:"CriticalHasShuntVoltageLow"`
-	CriticalHasShuntVoltageHigh         bool  `json:"CriticalHasShuntVoltageHigh"`
-	CriticalHasShuntLowIdleVolt         bool  `json:"CriticalHasShuntLowIdleVolt"`
-	CriticalHasShuntPeakCharge          bool  `json:"CriticalHasShuntPeakCharge"`
-	CriticalHasShuntPeakDischarge       bool  `json:"CriticalHasShuntPeakDischarge"`
-	ChargingIsONState                   bool  `json:"ChargingIsONState"`
-	ChargingIsLimitedPower              bool  `json:"ChargingIsLimitedPower"`
-	ChargingIsInTransition              bool  `json:"ChargingIsInTransition"`
-	ChargingPowerRateCurrentState       uint8 `json:"ChargingPowerRateCurrentState"`
-	ChargingPowerRateLiveCalc           uint8 `json:"ChargingPowerRateLiveCalc"`
-	ChargingHasCellVoltHigh             bool  `json:"ChargingHasCellVoltHigh"`
-	ChargingHasCellVoltPause            bool  `json:"ChargingHasCellVoltPause"`
-	ChargingHasCellVoltLimitedPower     bool  `json:"ChargingHasCellVoltLimitedPower"`
-	ChargingHasCellTempLow              bool  `json:"ChargingHasCellTempLow"`
-	ChargingHasCellTempHigh             bool  `json:"ChargingHasCellTempHigh"`
-	ChargingHasAmbientTempLow           bool  `json:"ChargingHasAmbientTempLow"`
-	ChargingHasAmbientTempHigh          bool  `json:"ChargingHasAmbientTempHigh"`
-	ChargingHasSupplyVoltHigh           bool  `json:"ChargingHasSupplyVoltHigh"`
-	ChargingHasSupplyVoltPause          bool  `json:"ChargingHasSupplyVoltPause"`
-	ChargingHasShuntVoltHigh            bool  `json:"ChargingHasShuntVoltHigh"`
-	ChargingHasShuntVoltPause           bool  `json:"ChargingHasShuntVoltPause"`
-	ChargingHasShuntVoltLimPower        bool  `json:"ChargingHasShuntVoltLimPower"`
-	ChargingHasShuntSocHigh             bool  `json:"ChargingHasShuntSocHigh"`
-	ChargingHasShuntSocPause            bool  `json:"ChargingHasShuntSocPause"`
-	ChargingHasCellsAboveInitialBypass  bool  `json:"ChargingHasCellsAboveInitialBypass"`
-	ChargingHasCellsAboveFinalBypass    bool  `json:"ChargingHasCellsAboveFinalBypass"`
-	ChargingHasCellsInBypass            bool  `json:"ChargingHasCellsInBypass"`
-	ChargingHasBypassComplete           bool  `json:"ChargingHasBypassComplete"`
-	ChargingHasBypassTempRelief         bool  `json:"ChargingHasBypassTempRelief"`
-	DischargingIsONState                bool  `json:"DischargingIsONState"`
-	DischargingIsLimitedPower           bool  `json:"DischargingIsLimitedPower"`
-	DischargingIsInTransition           bool  `json:"DischargingIsInTransition"`
-	DischargingPowerRateCurrentState    uint8 `json:"DischargingPowerRateCurrentState"`
-	DischargingPowerRateLiveCalc        uint8 `json:"DischargingPowerRateLiveCalc"`
-	DischargingHasCellVoltLow           bool  `json:"DischargingHasCellVoltLow"`
-	DischargingHasCellVoltPause         bool  `json:"DischargingHasCellVoltPause"`
-	DischargingHasCellVoltLimitedPower  bool  `json:"DischargingHasCellVoltLimitedPower"`
-	DischargingHasCellTempLow           bool  `json:"DischargingHasCellTempLow"`
-	DischargingHasCellTempHigh          bool  `json:"DischargingHasCellTempHigh"`
-	DischargingHasAmbientTempLow        bool  `json:"DischargingHasAmbientTempLow"`
-	DischargingHasAmbientTempHigh       bool  `json:"DischargingHasAmbientTempHigh"`
-	DischargingHasSupplyVoltLow         bool  `json:"DischargingHasSupplyVoltLow"`
-	DischargingHasSupplyVoltPause       bool  `json:"DischargingHasSupplyVoltPause"`
-	DischargingHasShuntVoltLow          bool  `json:"DischargingHasShuntVoltLow"`
-	DischargingHasShuntVoltPause        bool  `json:"DischargingHasShuntVoltPause"`
-	DischargingHasShuntVoltLimitedPower bool  `json:"DischargingHasShuntVoltLimitedPower"`
-	DischargingHasShuntSocLow           bool  `json:"DischargingHasShuntSocLow"`
-	DischargingHasShuntSocPause         bool  `json:"DischargingHasShuntSocPause"`
-	ThermalHeatONCurrentState           bool  `json:"ThermalHeatONCurrentState"`
-	ThermalHeatONLiveCalc               bool  `json:"ThermalHeatONLiveCalc"`
-	ThermalTransitionHeatON             bool  `json:"ThermalTransitionHeatON"`
-	ThermalAmbientTempLow               bool  `json:"ThermalAmbientTempLow"`
-	ThermalCellsInTempLow               bool  `json:"ThermalCellsInTempLow"`
-	ThermalCoolONCurrentState           bool  `json:"ThermalCoolONCurrentState"`
-	ThermalCoolONLivecalc               bool  `json:"ThermalCoolONLivecalc"`
-	ThermalTransitionCoolON             bool  `json:"ThermalTransitionCoolON"`
-	ThermalAmbientTempHigh              bool  `json:"ThermalAmbientTempHigh"`
-	ThermalCellsInTempHigh              bool  `json:"ThermalCellsInTempHigh"`
-	ChargingHasBypassSessionLow         bool  `json:"ChargingHasBypassSessionLow"`
-}
-type TelemetryRemoteStatusInfo struct { // 0x4932
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	CanbusRX_ticks         uint8  `json:"CanbusRX_ticks"`
-	CanbusRX_unknown_ticks uint8  `json:"CanbusRX_unknown_ticks"`
-	CanbusTX_ticks         uint8  `json:"CanbusTX_ticks"`
-	ChargeActualCelsius    uint8  `json:"ChargeActualCelsius"`
-	ChargeTargetVolt       uint16 `json:"ChargeTargetVolt"`
-	ChargeTargetAmp        uint16 `json:"ChargeTargetAmp"`
-	ChargeTargetVA         uint16 `json:"ChargeTargetVA"`
-	ChargeActualVolt       uint16 `json:"ChargeActualVolt"`
-	ChargeActualAmp        uint16 `json:"ChargeActualAmp"`
-	ChargeActualVA         uint16 `json:"ChargeActualVA"`
-	ChargeActualFlags1     uint32 `json:"ChargeActualFlags1"`
-	ChargeActualFlags2     uint32 `json:"ChargeActualFlags2"`
-	ChargeActualRxTime     uint32 `json:"ChargeActualRxTime"`
-	reserved               uint8  `json:"reserved"`
-	DischargeActualCelsius uint8  `json:"DischargeActualCelsius"`
-	DischargeTargetVolt    uint16 `json:"DischargeTargetVolt"`
-	DischargeTargetAmp     uint16 `json:"DischargeTargetAmp"`
-	DischargeTargetVA      uint16 `json:"DischargeTargetVA"`
-	DischargeActualVolt    uint16 `json:"DischargeActualVolt"`
-	DischargeActualAmp     uint16 `json:"DischargeActualAmp"`
-	DischargeActualVA      uint16 `json:"DischargeActualVA"`
-	DischargeActualFlags1  uint32 `json:"DischargeActualFlags1"`
-	DischargeActualFlags2  uint32 `json:"DischargeActualFlags2"`
-	DischargeActualRxTime  uint32 `json:"DischargeActualRxTime"`
-}
-type TelemetryCommunicationStatusInfo struct { // 0x6131
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	DeviceTime            uint32 `json:"DeviceTime"`
-	SystemOpstatus        uint8  `json:"SystemOpstatus"`
-	SystemAuthMode        uint8  `json:"SystemAuthMode"`
-	AuthToken             uint16 `json:"AuthToken"`
-	AuthRejectionAttempts uint8  `json:"AuthRejectionAttempts"`
-	WifiState             uint8  `json:"WifiState"`
-	WifiTxCmdTicks        uint8  `json:"WifiTxCmdTicks"`
-	WifiRxCmdTicks        uint8  `json:"WifiRxCmdTicks"`
-	WifiRxUnknownTicks    uint8  `json:"WifiRxUnknownTicks"`
-	CanbusStatus          uint8  `json:"CanbusStatus"`
-	CanbusRxCmdTicks      uint8  `json:"CanbusRxCmdTicks"`
-	CanbusRxUnknownTicks  uint8  `json:"CanbusRxUnknownTicks"`
-	CanbusTxCmdTicks      uint8  `json:"CanbusTxCmdTicks"`
-	ShuntPollerMode       uint8  `json:"ShuntPollerMode"`
-	ShuntStatus           uint8  `json:"ShuntStatus"`
-	ShuntTxTicks          uint8  `json:"ShuntTxTicks"`
-	ShuntRxTicks          uint8  `json:"ShuntRxTicks"`
-	CMUPollerMode         uint8  `json:"CMUPollerMode"`
-	CellmonCMUStatus      uint8  `json:"CellmonCMUStatus"`
-	CellmonCMUTxUSN       uint8  `json:"CellmonCMUTxUSN"`
-	CellmonCMURxUSN       uint8  `json:"CellmonCMURxUSN"`
-}
-type HardwareSystemSetupConfigurationInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	SetupVersion         uint8
-	SystemCode           string
-	SystemName           string
-	AssetCode            string
-	AllowTechAuthority   bool
-	AllowQuickSession    bool
-	QuickSessionlnterval uint32
-	PresetID             uint16
-	FirmwareVersion      uint16
-	HardwareVersion      uint16
-	SerialNumber         uint32
-	ShowScheduler        bool
-	ShowStripCycle       bool
-}
-type HardwareCellGroupSetupConfigurationInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	SetupVersion                  uint8
-	BatteryTypeID                 uint8
-	FirstNodeID                   uint8
-	LastNodeID                    uint8
-	NominalCellVoltage            uint16
-	LowCellVoltage                uint16
-	HighCellVoltage               uint16
-	BypassVoltageLevel            uint16
-	BypassAmpLimit                uint16
-	BypassTempLimit               uint8
-	LowCellTemp                   uint8
-	HighCellTemp                  uint8
-	DiffNomCellsInSeries          bool
-	NomCellsInSeries              uint8
-	AllowEntireRange              bool
-	FirstNodeIdOfEntireRange      uint8
-	LastNodeIdOfEntireRange       uint8
-	BypassExtraMode               uint8
-	BypassLatchInterval           uint16
-	CellMonTypeId                 uint8
-	BypassImpedance               float64
-	BypassCellVoltLowCutout       uint16
-	BypassShuntAmpLimitCharge     uint16
-	BypassShuntAmpLimitDischarge  uint16
-	BypassShuntSoCPercentMinLimit uint8
-	BypassCellVoltBanding         uint16
-	BypassCellVoltDifference      uint16
-	BypassStableInterval          uint16
-	BypassExtraAmpLimit           uint16
-}
-type HardwareShuntSetupConfigurationInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	ShuntTypeID                  uint8
-	VoltageScale                 uint16
-	AmpScale                     uint16
-	ChargeIdle                   uint16
-	DischargeIdle                uint16
-	SoCCountLow                  uint8
-	SoCCountHigh                 uint8
-	SoCLoRecalibration           uint8
-	SoCHiRecalibration           uint8
-	MonitorSoCLowRecalibration   bool
-	MonitorSoCHighRecalibration  bool
-	MonitorInBypassRecalibration bool
-	NominalCapacityInmAh         float64
-	GranularityInVolts           float64
-	GranularityInAmps            float64
-	GranularityInmAh             float64
-	GranularityInCelcius         float64
-	ReverseFlow                  bool
-	SetupVersion                 uint8
-	GranularityinVA              float64
-	GranularityinVAhour          float64
-	MaxVoltage                   uint16
-	MaxAmpCharge                 uint16
-	MaxAmpDischg                 uint16
-}
-type HardwareExpansionSetupConfigurationInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	SetupVersion          uint8
-	ExtensionTemplate     uint8
-	NeoPixelExtStatusMode uint8
-	Relay1Function        uint8
-	Relay2Function        uint8
-	Relay3Function        uint8
-	Relay4Function        uint8
-	Output5Function       uint8
-	Output6Function       uint8
-	Output7Function       uint8
-	Output8Function       uint8
-	Output9Function       uint8
-	Output10Function      uint8
-	Input1Function        uint8
-	Input2Function        uint8
-	Input3Function        uint8
-	Input4Function        uint8
-	Input5Function        uint8
-	InputAIN1Function     uint8
-	InputAIN2Function     uint8
-	CustomFeature1        uint16
-	CustomFeature2        uint16
-}
-type HardwareIntegrationSetupConfigurationInfo struct {
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	SetupVersion         uint8
-	USBTX_Broadcast      bool
-	WifiUDP_TX_Broadcast bool
-	WifiBroadcastMode    uint8
-	CanbusTX_Broadcast   bool
-	CanbusMode           uint8
-	CanbusRemoteAddress  uint32
-	CanbusBaseAddress    uint32
-	CanbusGroupAddress   uint32
-}
-type ControlLogicCriticalSetupConfigurationInfo struct { // 0x4F33 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	ControlMode                   uint8  `json:"ControlMode"`
-	AutoRecovery                  bool   `json:"AutoRecovery"`
-	IgnoreOverdueCells            bool   `json:"IgnoreOverdueCells"`
-	MonitorLowCellVoltage         bool   `json:"MonitorLowCellVoltage"`
-	MonitorHighCellVoltage        bool   `json:"MonitorHighCellVoltage"`
-	LowCellVoltage                uint16 `json:"LowCellVoltage"`
-	HighCellVoltage               uint16 `json:"HighCellVoltage"`
-	MonitorLowCellTemp            bool   `json:"MonitorLowCellTemp"`
-	MonitorHighCellTemp           bool   `json:"MonitorHighCellTemp"`
-	LowCellTemp                   uint8  `json:"LowCellTemp"`
-	HighCellTemp                  uint8  `json:"HighCellTemp"`
-	MonitorLowSupplyVoltage       bool   `json:"MonitorLowSupplyVoltage"`
-	MonitorHighSupplyVoltage      bool   `json:"MonitorHighSupplyVoltage"`
-	LowSupplyVoltage              uint16 `json:"LowSupplyVoltage"`
-	HighSupplyVoltage             uint16 `json:"HighSupplyVoltage"`
-	MonitorLowAmbientTemp         bool   `json:"MonitorLowAmbientTemp"`
-	MonitorHighAmbientTemp        bool   `json:"MonitorHighAmbientTemp"`
-	LowAmbientTemp                uint8  `json:"LowAmbientTemp"`
-	HighAmbientTemp               uint8  `json:"HighAmbientTemp"`
-	MonitorLowShuntVoltage        bool   `json:"MonitorLowShuntVoltage"`
-	MonitorHighShuntVoltage       bool   `json:"MonitorHighShuntVoltage"`
-	MonitorLowIdleShuntVoltage    bool   `json:"MonitorLowIdleShuntVoltage"`
-	LowShuntVoltage               uint16 `json:"LowShuntVoltage"`
-	HighShuntVoltage              uint16 `json:"HighShuntVoltage"`
-	LowIdleShuntVoltage           uint16 `json:"LowIdleShuntVoltage"`
-	MonitorShuntVoltagePeakCharge bool   `json:"MonitorShuntVoltagePeakCharge"`
-	ShuntPeakCharge               uint16 `json:"ShuntPeakCharge"`
-	ShuntCrateCharge              uint16 `json:"ShuntCrateCharge"`
-	MonitorShuntPeakDischarge     bool   `json:"MonitorShuntPeakDischarge"`
-	ShuntPeakDischarge            uint16 `json:"ShuntPeakDischarge"`
-	ShuntCrateDischarge           uint16 `json:"ShuntCrateDischarge"`
-	StopTimerInterval             uint32 `json:"StopTimerInterval"`
-	StartTimerInterval            uint32 `json:"StartTimerInterval"`
-	TimeOutManualOverride         uint32 `json:"TimeOutManualOverride"`
-	SetupVersion                  uint8  `json:"SetupVersion"`
-}
-type ControlLogicChargeSetupConfigurationInfo struct { // 0x5033 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	ControlMode               uint8   `json:"ControlMode"`
-	AllowLimitedPowerStage    bool    `json:"AllowLimitedPowerStage"`
-	AllowLimitedPowerBypass   bool    `json:"AllowLimitedPowerBypass"`
-	AllowLimitedPowerComplete bool    `json:"AllowLimitedPowerComplete"`
-	InitialBypassCurrent      uint16  `json:"InitialBypassCurrent"`
-	FinalBypassCurrent        uint16  `json:"FinalBypassCurrent"`
-	MonitorCellLowTemp        bool    `json:"MonitorCellLowTemp"`
-	MonitorCellHighTemp       bool    `json:"MonitorCellHighTemp"`
-	CellLowTemp               uint8   `json:"CellLowTemp"`
-	CellHighTemp              uint8   `json:"CellHighTemp"`
-	MonitorAmbientLowTemp     uint8   `json:"MonitorAmbientLowTemp"`
-	MonitorAmbientHighTemp    uint8   `json:"MonitorAmbientHighTemp"`
-	AmbientLowTemp            uint8   `json:"AmbientLowTemp"`
-	AmbientHighTemp           uint8   `json:"AmbientHighTemp"`
-	MonitorSupplyHigh         bool    `json:"MonitorSupplyHigh"`
-	SupplyVoltageHigh         uint16  `json:"SupplyVoltageHigh"`
-	SupplyVoltageResume       uint16  `json:"SupplyVoltageResume"`
-	MonitorHighCellVoltage    bool    `json:"MonitorHighCellVoltage"`
-	CellVoltageHigh           uint16  `json:"CellVoltageHigh"`
-	CellVoltageResume         uint16  `json:"CellVoltageResume"`
-	CellVoltageLimitedPower   uint16  `json:"CellVoltageLimitedPower"`
-	MonitorShuntVoltageHigh   bool    `json:"MonitorShuntVoltageHigh"`
-	ShuntVoltageHigh          uint16  `json:"ShuntVoltageHigh"`
-	ShuntVoltageResume        uint16  `json:"ShuntVoltageResume"`
-	ShuntVoltageLimitedPower  uint16  `json:"ShuntVoltageLimitedPower"`
-	MonitorShuntSoCHigh       bool    `json:"MonitorShuntSoCHigh"`
-	ShuntSoCHigh              uint16  `json:"ShuntSoCHigh"`
-	ShuntSoCResume            uint16  `json:"ShuntSoCResume"`
-	StopTimerInterval         uint32  `json:"StopTimerInterval"`
-	StartTimerInterval        uint32  `json:"StartTimerInterval"`
-	SetupVersion              uint8   `json:"SetupVersion"`
-	BypassSessionLow          float64 `json:"BypassSessionLow"`
-	AllowBypassSession        bool    `json:"AllowBypassSession"`
-}
-type ControlLogicDischargeSetupConfigurationInfo struct { // 0x5158 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	ControlMode              uint8  `json:"ControlMode"`
-	AllowLimitedPowerStage   bool   `json:"AllowLimitedPowerStage"`
-	MonitorCellTempLow       bool   `json:"MonitorCellTempLow"`
-	MonitorCellTempHigh      bool   `json:"MonitorCellTempHigh"`
-	CellTempLow              uint8  `json:"CellTempLow"`
-	CellTempHigh             uint8  `json:"CellTempHigh"`
-	MonitorAmbientLow        bool   `json:"MonitorAmbientLow"`
-	MonitorAmbientHigh       bool   `json:"MonitorAmbientHigh"`
-	AmbientTempLow           uint8  `json:"AmbientTempLow"`
-	AmbientTempHigh          uint8  `json:"AmbientTempHigh"`
-	MonitorSupplyLow         bool   `json:"MonitorSupplyLow"`
-	SupplyVoltageLow         uint16 `json:"SupplyVoltageLow"`
-	SupplyVoltageResume      uint16 `json:"SupplyVoltageResume"`
-	MonitorCellVoltageLo     bool   `json:"MonitorCellVoltageLo"`
-	CellVoltageLow           uint16 `json:"CellVoltageLow"`
-	CellVoltageResume        uint16 `json:"CellVoltageResume"`
-	CellVoltageLimitedPower  uint16 `json:"CellVoltageLimitedPower"`
-	MonitorShuntVoltageLow   bool   `json:"MonitorShuntVoltageLow"`
-	ShuntVoltageLow          uint16 `json:"ShuntVoltageLow"`
-	ShuntVoltageResume       uint16 `json:"ShuntVoltageResume"`
-	ShuntVoltageLimitedPower uint16 `json:"ShuntVoltageLimitedPower"`
-	MonitorShuntSoCLow       bool   `json:"MonitorShuntSoCLow"`
-	ShuntSoCLow              uint8  `json:"ShuntSoCLow"`
-	ShuntSoCResume           uint8  `json:"ShuntSoCResume"`
-	StopTimerInterval        uint32 `json:"StopTimerInterval"`
-	StartTimerInterval       uint32 `json:"StartTimerInterval"`
-	SetupVersion             uint8  `json:"SetupVersion"`
-}
-type ControlLogicThermalSetupConfigurationInfo struct { // 0x5258 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	ControlModeHeat        uint8  `json:"ControlModeHeat"`
-	MonitorLowCellTemp     bool   `json:"MonitorLowCellTemp"`
-	MonitorLowAmbientTemp  bool   `json:"MonitorLowAmbientTemp"`
-	LowCellTemp            uint8  `json:"LowCellTemp"`
-	LowAmbientTemp         uint8  `json:"LowAmbientTemp"`
-	StopTimerIntervalHeat  uint32 `json:"StopTimerIntervalHeat"`
-	StartTimerIntervalHeat uint32 `json:"StartTimerIntervalHeat"`
-	ControlModeCool        uint8  `json:"ControlModeCool"`
-	MonitorHighCellTemp    bool   `json:"MonitorHighCellTemp"`
-	MonitorHighAmbientTemp bool   `json:"MonitorHighAmbientTemp"`
-	MonitorInCellBypass    bool   `json:"MonitorInCellBypass"`
-	HighCellTemp           uint8  `json:"HighCellTemp"`
-	HighAmbientTemp        uint8  `json:"HighAmbientTemp"`
-	StopTimerIntervalCool  uint32 `json:"StopTimerIntervalCool"`
-	StartTimerIntervalCool uint32 `json:"StartTimerIntervalCool"`
-	SetupVersion           uint8  `json:"SetupVersion"`
-}
-type ControlLogicRemoteSetupConfigurationInfo struct { // 0x4E58 Not Implemented
-	MessageType                  string `json:"MessageType"`
-	systemId                     uint16 `json:"systemId"`
-	hubId                        uint16 `json:"hubId"`
-	ChargeNormalVolt             uint16 `json:"ChargeNormalVolt"`
-	ChargeNormalAmp              uint16 `json:"ChargeNormalAmp"`
-	ChargeNormalVA               uint16 `json:"ChargeNormalVA"`
-	ChargeLimitedPowerVoltage    uint16 `json:"ChargeLimitedPowerVoltage"`
-	ChargeLimitedPowerAmp        uint16 `json:"ChargeLimitedPowerAmp"`
-	ChargeLimitedPowerVA         uint16 `json:"ChargeLimitedPowerVA"`
-	ChargeScale16Voltage         uint16 `json:"ChargeScale16Voltage"`
-	ChargeScale16Amp             uint16 `json:"ChargeScale16Amp"`
-	ChargeScale16VA              uint16 `json:"ChargeScale16VA"`
-	DischargeNormalVolt          uint16 `json:"DischargeNormalVolt"`
-	DischargeNormalAmp           uint16 `json:"DischargeNormalAmp"`
-	DischargeNormalVA            uint16 `json:"DischargeNormalVA"`
-	DischargeLimitedPowerVoltage uint16 `json:"DischargeLimitedPowerVoltage"`
-	DischargeLimitedPowerAmp     uint16 `json:"DischargeLimitedPowerAmp"`
-	DischargeLimitedPowerVA      uint16 `json:"DischargeLimitedPowerVA"`
-	DischargeScale16Voltage      uint16 `json:"DischargeScale16Voltage"`
-	DischargeScale16Amp          uint16 `json:"DischargeScale16Amp"`
-	DischargeScale16VA           uint16 `json:"DischargeScale16VA"`
-	SetupVersion                 uint8  `json:"SetupVersion"`
-}
-type TelemetryDailySessionInfo struct { // 0x5432 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	MinCellVoltage                                          uint16  `json:"MinCellVoltage"`
-	MaxCellVoltage                                          uint16  `json:"MaxCellVoltage"`
-	MinSupplyVoltage                                        uint16  `json:"MinSupplyVoltage"`
-	MaxSupplyVoltage                                        uint16  `json:"MaxSupplyVoltage"`
-	MinReportedTemperature                                  uint8   `json:"MinReportedTemperature"`
-	MaxReportedTemperature                                  uint8   `json:"MaxReportedTemperature"`
-	MinShuntVolt                                            uint16  `json:"MinShuntVolt"`
-	MaxShuntVolt                                            uint16  `json:"MaxShuntVolt"`
-	MinShuntSoC                                             uint8   `json:"MinShuntSoC"`
-	MaxShuntSoC                                             uint8   `json:"MaxShuntSoC"`
-	TemperatureBandAGreaterThanSixtyDegreesCelsius          uint8   `json:"TemperatureBandAGreaterThanSixtyDegreesCelsius"`
-	TemperatureBandBGreaterThanFiftyFiveDegreesCelsius      uint8   `json:"TemperatureBandBGreaterThanFiftyFiveDegreesCelsius"`
-	TemperatureBandCGreaterThanFourtyOneDegreesCelsius      uint8   `json:"TemperatureBandCGreaterThanFourtyOneDegreesCelsius"`
-	TemperatureBandDGreaterThanThirtyThreeDegreesCelsius    uint8   `json:"TemperatureBandDGreaterThanThirtyThreeDegreesCelsius"`
-	TemperatureBandEGreaterThanTwentyFiveDegreesCelsius     uint8   `json:"TemperatureBandEGreaterThanTwentyFiveDegreesCelsius"`
-	TemperatureBandFGreaterThanFifteenDegreesCelsius        uint8   `json:"TemperatureBandFGreaterThanFifteenDegreesCelsius"`
-	TemperatureBandGGreaterThanZeroDegreesCelsius           uint8   `json:"TemperatureBandGGreaterThanZeroDegreesCelsius"`
-	TemperatureBandHGreaterThanNegativeFourtyDegreesCelsius uint8   `json:"TemperatureBandHGreaterThanNegativeFourtyDegreesCelsius"`
-	SOCPercentBandAGreaterThanEightySevenPointFivePercent   uint8   `json:"SOCPercentBandAGreaterThanEightySevenPointFivePercent"`
-	SOCPercentBandBGreaterThanSeventyFivePercent            uint8   `json:"SOCPercentBandBGreaterThanSeventyFivePercent"`
-	SOCPercentBandCGreaterThanSixtyTwoPointFivePercent      uint8   `json:"SOCPercentBandCGreaterThanSixtyTwoPointFivePercent"`
-	SOCPercentBandDGreaterThanFiftyPercent                  uint8   `json:"SOCPercentBandDGreaterThanFiftyPercent"`
-	SOCPercentBandEGreaterThanThirtyFivePointFivePercent    uint8   `json:"SOCPercentBandEGreaterThanThirtyFivePointFivePercent"`
-	SOCPercentBandFGreaterThanTwentyFivePercent             uint8   `json:"SOCPercentBandFGreaterThanTwentyFivePercent"`
-	SOCPercentBandGGreaterThanTwelvePointFivePercent        uint8   `json:"SOCPercentBandGGreaterThanTwelvePointFivePercent"`
-	SOCPercentBandHGreaterThanZeroPercent                   uint8   `json:"SOCPercentBandHGreaterThanZeroPercent"`
-	ShuntPeakCharge                                         uint16  `json:"ShuntPeakCharge"`
-	ShuntPeakDischarge                                      uint16  `json:"ShuntPeakDischarge"`
-	CriticalEvents                                          uint8   `json:"CriticalEvents"`
-	StartTime                                               uint32  `json:"StartTime"`
-	FinishTime                                              uint32  `json:"FinishTime"`
-	CumulativeShuntAmpHourCharge                            float64 `json:"CumulativeShuntAmpHourCharge"`
-	CumulativeShuntAmpHourDischarge                         float64 `json:"CumulativeShuntAmpHourDischarge"`
-	CumulativeShuntWattHourCharge                           float64 `json:"CumulativeShuntWattHourCharge"`
-	CumulativeShuntWattHourDischarge                        float64 `json:"CumulativeShuntWattHourDischarge"`
-}
-type TelemetryDailySessionHistoryReply struct { // 0x5831 Not Implemented
-	MessageType                                             string `json:"MessageType"`
-	systemId                                                uint16 `json:"systemId"`
-	hubId                                                   uint16 `json:"hubId"`
-	RecordIndex                                             uint16
-	RecordTime                                              uint32
-	CriticalEvents                                          uint8
-	Reserved                                                uint8
-	MinReportedTemperature                                  uint8
-	MaxReportedTemperature                                  uint8
-	MinShuntSoC                                             uint8
-	MaxShuntSoC                                             uint8
-	MinCellVoltage                                          uint16
-	MaxCellVoltage                                          uint16
-	MinSupplyVoltage                                        uint16
-	MaxSupplyVoltage                                        uint16
-	MinShuntVolt                                            uint16
-	MaxShuntVolt                                            uint16
-	TemperatureBandAGreaterThanSixtyDegreesCelsius          uint8
-	TemperatureBandBGreaterThanFiftyFiveDegreesCelsius      uint8
-	TemperatureBandCGreaterThanFourtyOneDegreesCelsius      uint8
-	TemperatureBandDGreaterThanThirtyThreeDegreesCelsius    uint8
-	TemperatureBandEGreaterThanTwentyFiveDegreesCelsius     uint8
-	TemperatureBandFGreaterThanFifteenDegreesCelsius        uint8
-	TemperatureBandGGreaterThanZeroDegreesCelsius           uint8
-	TemperatureBandHGreaterThanNegativeFourtyDegreesCelsius uint8
-	SOCPercentBandAGreaterThanEightySevenPointFivePercent   uint8
-	SOCPercentBandBGreaterThanSeventyFivePercent            uint8
-	SOCPercentBandCGreaterThanSixtyTwoPointFivePercent      uint8
-	SOCPercentBandDGreaterThanFiftyPercent                  uint8
-	SOCPercentBandEGreaterThanThirtyFivePointFivePercent    uint8
-	SOCPercentBandFGreaterThanTwentyFivePercent             uint8
-	SOCPercentBandGGreaterThanTwelvePointFivePercent        uint8
-	SOCPercentBandHGreaterThanZeroPercent                   uint8
-	ShuntPeakCharge                                         uint16
-	ShuntPeakDischarge                                      uint16
-	CumulativeShuntAmpHourCharge                            float64
-	CumulativeShuntAmpHourDischarge                         float64
-}
-type TelemetryQuickSessionHistoryReply struct { // 0x6831 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	RecordIndex           uint16  `json:"RecordIndex"`
-	RecordTime            uint32  `json:"RecordTime"`
-	SystemOpStatus        uint8   `json:"SystemOpStatus"`
-	ControlFlags          uint8   `json:"ControlFlags"`
-	MinCellVoltage        uint16  `json:"MinCellVoltage"`
-	MaxCellVoltage        uint16  `json:"MaxCellVoltage"`
-	AvgCellVoltage        uint16  `json:"AvgCellVoltage"`
-	AvgTemperature        uint8   `json:"AvgTemperature"`
-	ShuntSoC_PercentHiRes uint16  `json:"ShuntSoC_PercentHiRes"`
-	ShuntVolt             uint16  `json:"ShuntVolt"`
-	ShuntCurrent          float64 `json:"ShuntCurrent"`
-	NumberOfCellsInBypass uint8   `json:"NumberOfCellsInBypass"`
-}
-type TelemetrySessionMetrics struct { // 0x5431 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	RecentTimeQuickSession      uint32 `json:"RecentTimeQuickSession"`
-	QuickSessionNumberOfRecords uint16 `json:"QuickSessionNumberOfRecords"`
-	QuickSessionRecordCapacity  uint16 `json:"QuickSessionRecordCapacity"`
-	QuickSessionInterval        uint32 `json:"QuickSessionInterval"`
-	AllowQuickSession           bool   `json:"AllowQuickSession"`
-	DailysessionNumberOfRecords uint16 `json:"DailysessionNumberOfRecords"`
-	DailysessionRecordCapacity  uint16 `json:"DailysessionRecordCapacity"`
-}
-type TelemetryShuntMetricsInfo struct { // 0x7857 Not Implemented
-	MessageType string `json:"MessageType"`
-	systemId    uint16 `json:"systemId"`
-	hubId       uint16 `json:"hubId"`
-
-	ShuntSoCCycles                    uint16  `json:"ShuntSoCCycles"`
-	LastTimeAccumulationSaved         uint32  `json:"LastTimeAccumulationSaved"`
-	LastTimeSoC_LoRecal               uint32  `json:"LastTimeSoC_LoRecal"`
-	LastTimeSoC_HiRecal               uint32  `json:"LastTimeSoC_HiRecal"`
-	LastTimeSoC_LoCount               uint32  `json:"LastTimeSoC_LoCount"`
-	LastTimeSoC_HiCount               uint32  `json:"LastTimeSoC_HiCount"`
-	HasShuntSoC_LoCount               bool    `json:"HasShuntSoC_LoCount"`
-	HasShuntSoC_HiCount               bool    `json:"HasShuntSoC_HiCount"`
-	EstimatedDurationToFullInMinutes  uint16  `json:"EstimatedDurationToFullInMinutes"`
-	EstimatedDurationToEmptyInMinutes uint16  `json:"EstimatedDurationToEmptyInMinutes"`
-	RecentChargeInAvgmAh              float64 `json:"RecentChargeInAvgmAh"`
-	RecentDischargeInAvgmAh           float64 `json:"RecentDischargeInAvgmAh"`
-	RecentNettmAh                     float64 `json:"RecentNettmAh"`
-	SerialNumber                      uint32  `json:"SerialNumber"`
-	ManuCode                          uint32  `json:"ManuCode"`
-	PartNumber                        uint16  `json:"PartNumber"`
-	VersionCode                       uint16  `json:"VersionCode"`
-	PNS1                              string  `json:"PNS1"`
-	PNS2                              string  `json:"PNS2"`
-}
-type TelemetryLifetimeMetricsInfo struct { // 0x5632 Not Implemented
-	MessageType                         string `json:"MessageType"`
-	systemId                            uint16 `json:"systemId"`
-	hubId                               uint16 `json:"hubId"`
-	FirstSyncTime                       uint32 `json:"FirstSyncTime"`
-	CountStartup                        uint32 `json:"CountStartup"`
-	CountCriticalBatteryOK              uint32 `json:"CountCriticalBatteryOK"`
-	CountChargeOn                       uint32 `json:"CountChargeOn"`
-	CountChargeLimitedPower             uint32 `json:"CountChargeLimitedPower"`
-	CountDischargeOn                    uint32 `json:"CountDischargeOn"`
-	CountDischargeLimitedPower          uint32 `json:"CountDischargeLimitedPower"`
-	CountHeatOn                         uint32 `json:"CountHeatOn"`
-	CountCoolOn                         uint32 `json:"CountCoolOn"`
-	CountDailySession                   uint16 `json:"CountDailySession"`
-	MostRecentTimeCriticalOn            uint32 `json:"MostRecentTimeCriticalOn"`
-	MostRecentTimeCriticalOff           uint32 `json:"MostRecentTimeCriticalOff"`
-	MostRecentTimeChargeOn              uint32 `json:"MostRecentTimeChargeOn"`
-	MostRecentTimeChargeOff             uint32 `json:"MostRecentTimeChargeOff"`
-	MostRecentTimeChargeLimitedPower    uint32 `json:"MostRecentTimeChargeLimitedPower"`
-	MostRecentTimeDischargeOn           uint32 `json:"MostRecentTimeDischargeOn"`
-	MostRecentTimeDischargeOff          uint32 `json:"MostRecentTimeDischargeOff"`
-	MostRecentTimeDischargeLimitedPower uint32 `json:"MostRecentTimeDischargeLimitedPower"`
-	MostRecentTimeHeatOn                uint32 `json:"MostRecentTimeHeatOn"`
-	MostRecentTimeHeatOff               uint32 `json:"MostRecentTimeHeatOff"`
-	MostRecentTimeCoolOn                uint32 `json:"MostRecentTimeCoolOn"`
-	MostRecentTimeCoolOff               uint32 `json:"MostRecentTimeCoolOff"`
-	MostRecentTimeBypassInitialised     uint32 `json:"MostRecentTimeBypassInitialised"`
-	MostRecentTimeBypassCompleted       uint32 `json:"MostRecentTimeBypassCompleted"`
-	MostRecentTimeBypassTested          uint32 `json:"MostRecentTimeBypassTested"`
-	RecentBypassOutcomes                uint8  `json:"RecentBypassOutcomes"`
-	MostRecentTimeWizardSetup           uint32 `json:"MostRecentTimeWizardSetup"`
-	MostRecentTimeRebalancingExtra      uint32 `json:"MostRecentTimeRebalancingExtra"`
-}
-type TelemetryCellmonNodeStatusInfo struct { // 0x415A Not Implemented
-	//CMU Port – RX Node ID 8 uint8
-	//Records 9 uint8
-	//First Node ID 10 uint8
-	//Last Node ID 11 uint8
-	//Node ID idx+0
-	//USN Idx+1
-	//Min Cell Voltage Idx+2 uint16
-	//Max Cell Voltage Idx+4 uint16
-	//Max Cell Temp Idx+6 uint8
-	//Bypass Temp Idx+7 uint8
-	//Bypass Amp Idx+8 uint16
-	//Node Status Idx+10 uint8
-}
-type TelemetryCellmonNodeFullInfo struct { // 0x4232 Not Implemented
-	// NodeID 8 uint8
-	// USN 9 uint8
-	// MinCellVoltage 10 uint16
-	// MaxCellVoltage 12 uint16
-	// MaxCellTemp 14 uint8
-	// BypassTemp 15 uint8
-	// BypassAmp 16 uint16
-	// ErrorDataCounter 18 uint8
-	// ResetCounter 19 uint8
-	// OperatingStatus 20 uint8
-	// IsOverdue 21 bool
-	// ParamLowCellVoltage 22 uint16
-	// ParamHighCellVoltage 24 uint16
-	// ParamBypassVoltageLevel 26 uint16
-	// ParamBypassAmp 28 uint16
-	// ParamBypassTempLimit 30 uint8
-	// ParamHighCellTemp 31 uint8
-	// ParamRawVoltCalOffset 32 uint8
-	// DeviceFWversion 33 uint16
-	// DeviceHWversion 35 uint16
-	// DeviceBootversion 37 uint16
-	// DeviceSerialNum 39 uint32
-	// BypassInitialDate 43 uint32
-	// BypassSessionmAh 47 float64
-	// RepeatCellV 51 uint8
-}
 
 func Float64frombytes(bytes []byte) float64 {
 	bits := binary.LittleEndian.Uint64(bytes)
@@ -880,17 +57,25 @@ func main() {
 			dst := make([]byte, hex.EncodedLen(len(b)))
 			hex.Encode(dst, b)
 
+			//fmt.Println("b:", string(b[0:50]))
+			//fmt.Println("dst:", string(dst[0:50]))
+
 			if string(dst[0:2]) == "3a" {
-				a := &IndividualCellMonitorBasicStatus{
+				a := &batrium.IndividualCellMonitorBasicStatus{
 					MessageType: fmt.Sprintf("0x%X", binary.LittleEndian.Uint16(b[1:3])),
-					systemId:    binary.LittleEndian.Uint16(b[4:6]),
-					hubId:       binary.LittleEndian.Uint16(b[6:8]),
+					SystemID:    binary.LittleEndian.Uint16(b[4:6]),
+					HubID:       binary.LittleEndian.Uint16(b[6:8]),
 				}
 
 				switch a.MessageType {
 				case "0x5732": // System Discovery Info
-					continue
-					c := &SystemDiscoveryInfo{
+					fmt.Println("a.MessageType:", a.MessageType)
+					fmt.Println("a.SystemID:", a.SystemID)
+					fmt.Println("a.HubID:", a.HubID)
+
+					//continue
+					fmt.Println("SystemDiscoveryInfo: OK.")
+					c := &batrium.SystemDiscoveryInfo{
 						MessageType:             fmt.Sprintf("%s", "0x5732"),
 						SystemCode:              fmt.Sprintf("%s", b[8:8+8]),
 						FirmwareVersion:         binary.LittleEndian.Uint16(b[16 : 16+2]),
@@ -917,7 +102,7 @@ func main() {
 						ShuntRXTicks:            uint8(b[49]),
 					}
 					if display == true {
-						jsonOutput, _ := json.Marshal(c)
+						jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 						fmt.Println(string(jsonOutput))
 					}
 
@@ -926,24 +111,24 @@ func main() {
 					var idx int
 					idx = 12
 
-					c := &IndividualCellMonitorBasicStatus{
+					c := &batrium.IndividualCellMonitorBasicStatus{
 						MessageType: a.MessageType,
-						systemId:    a.systemId,
-						hubId:       a.hubId,
-						cmu_port:    uint8(b[12]),
-						records:     uint8(b[17]),
-						firstNodeId: uint8(b[14]),
-						lastNodeId:  uint8(b[15]),
+						SystemID:    a.SystemID,
+						HubID:       a.HubID,
+						CmuPort:     uint8(b[12]),
+						Records:     uint8(b[17]),
+						FirstNodeID: uint8(b[14]),
+						LastNodeID:  uint8(b[15]),
 					}
 
-					fmt.Printf("systemId: %d\n", c.systemId)
-					fmt.Printf("hubId: %d\n", c.hubId)
-					fmt.Printf("cmu_port: %d\nrecords: %d\nfirstNodeId: %d\nlastNodeId: %d\n", c.cmu_port, c.records, c.firstNodeId, c.lastNodeId)
+					fmt.Printf("SystemID: %d\n", c.SystemID)
+					fmt.Printf("HubID: %d\n", c.HubID)
+					fmt.Printf("CmuPort: %d\nRecords: %d\nFirstNodeID: %d\nLastNodeID: %d\n", c.CmuPort, c.Records, c.FirstNodeID, c.LastNodeID)
 					//jsonOutput, _ := json.Marshal(c)
 					//fmt.Println(string(jsonOutput))
 
 					for idx < cc {
-						fmt.Printf("NodeId %d, USN %d, MinCellVoltage %d, MaxCellVoltage %d ", uint8(b[idx+0]), uint8(b[idx+1]), binary.LittleEndian.Uint16(b[idx+2:idx+2+2]), binary.LittleEndian.Uint16(b[idx+4:idx+4+2]))
+						fmt.Printf("NodeID %d, USN %d, MinCellVoltage %d, MaxCellVoltage %d ", uint8(b[idx+0]), uint8(b[idx+1]), binary.LittleEndian.Uint16(b[idx+2:idx+2+2]), binary.LittleEndian.Uint16(b[idx+4:idx+4+2]))
 						fmt.Printf("MaxCellTemp %d, BypassTemp %d, BypassAmp %d ", uint8(b[idx+6]), uint8(b[idx+7]), binary.LittleEndian.Uint16(b[idx+8:idx+8+2]))
 						fmt.Printf("Status %d\n", uint8(b[idx+10]))
 						idx = idx + 11
@@ -952,11 +137,11 @@ func main() {
 					fmt.Printf("totalSize %d\n", cc)
 				case "0x4232": // Individual cell monitor Full Info (node specific), [Json]
 					continue
-					c := &IndividualCellMonitorFullInfo{
+					c := &batrium.IndividualCellMonitorFullInfo{
 						MessageType:             fmt.Sprintf("%s", "0x4232"),
-						systemId:                a.systemId,
-						hubId:                   a.hubId,
-						NodeId:                  uint8(b[8]),
+						SystemID:                a.SystemID,
+						HubID:                   a.HubID,
+						NodeID:                  uint8(b[8]),
 						USN:                     uint8(b[9]),
 						MinCellVoltage:          binary.LittleEndian.Uint16(b[10 : 10+2]),
 						MaxCellVoltage:          binary.LittleEndian.Uint16(b[12 : 12+2]),
@@ -989,10 +174,10 @@ func main() {
 					}
 				case "0x3E32": // Telemetry - Combined Status Rapid Info, [Json]
 					continue
-					c := &TelemetryCombinedStatusRapidInfo{
+					c := &batrium.TelemetryCombinedStatusRapidInfo{
 						MessageType:                     fmt.Sprintf("%s", "0x3E32"),
-						systemId:                        a.systemId,
-						hubId:                           a.hubId,
+						SystemID:                        a.SystemID,
+						HubID:                           a.HubID,
 						MinCellVoltage:                  binary.LittleEndian.Uint16(b[8 : 8+2]),
 						MaxCellVoltage:                  binary.LittleEndian.Uint16(b[10 : 10+2]),
 						MinCellVoltReference:            uint8(b[12]),
@@ -1003,12 +188,12 @@ func main() {
 						MaxCellTempReference:            uint8(b[17]),
 						MinCellBypassCurrent:            binary.LittleEndian.Uint16(b[18 : 18+2]),
 						MaxCellBypassCurrent:            binary.LittleEndian.Uint16(b[20 : 20+2]),
-						MinCellBypassRefId:              uint8(b[22]),
-						MaxCellBypassRefId:              uint8(b[23]),
+						MinCellBypassRefID:              uint8(b[22]),
+						MaxCellBypassRefID:              uint8(b[23]),
 						MinBypassTemperature:            uint8(b[24]),
 						MaxBypassTemperature:            uint8(b[25]),
-						MinBypassTempRefId:              uint8(b[26]),
-						MaxBypassTempRefId:              uint8(b[27]),
+						MinBypassTempRefID:              uint8(b[26]),
+						MaxBypassTempRefID:              uint8(b[27]),
 						AverageCellVoltage:              binary.LittleEndian.Uint16(b[28 : 28+2]),
 						AverageCellTemperature:          uint8(b[30]),
 						NumberOfCellsAboveInitialBypass: uint8(b[31]),
@@ -1017,9 +202,9 @@ func main() {
 						NumberOfCellsOverdue:            uint8(b[34]),
 						NumberOfCellsActive:             uint8(b[35]),
 						NumberOfCellsInSystem:           uint8(b[36]),
-						CMU_PortTX_NodeID:               uint8(b[36]),
-						CMU_PortRX_NodeID:               uint8(b[38]),
-						CMU_PortRX_USN:                  uint8(b[39]),
+						CMUPortTXNodeID:                 uint8(b[36]),
+						CMUPortRXNodeID:                 uint8(b[38]),
+						CMUPortRXUSN:                    uint8(b[39]),
 						ShuntVoltage:                    binary.LittleEndian.Uint16(b[40 : 40+2]),
 						ShuntAmp:                        Float64frombytes(b[42:50]),
 						//ShuntPower: Float64frombytes(b[50:57]),
@@ -1031,58 +216,58 @@ func main() {
 					}
 				case "0x3F33": // Telemetry - Combined Status Fast Info, [Json]
 					continue
-					c := &TelemetryCombinedStatusFastInfo{
-						MessageType:                              fmt.Sprintf("%s", "0x3F33"),
-						systemId:                                 a.systemId,
-						hubId:                                    a.hubId,
-						CMU_PollerMode:                           uint8(b[8]),
-						CMU_PortTX_AckCount:                      uint8(b[9]),
-						CMU_Port_TX_OpStatusNodeID:               uint8(b[10]),
-						CMU_Port_TX_OpStatusUSN:                  uint8(b[11]),
-						CMU_Port_TX_OpParameterNodeID:            uint8(b[12]),
-						GroupMinCellVolt:                         binary.LittleEndian.Uint16(b[13:15]),
-						GroupMaxCellVolt:                         binary.LittleEndian.Uint16(b[15:17]),
-						GroupMinCellTemp:                         uint8(b[17]),
-						GroupMaxCellTemp:                         uint8(b[18]),
-						CMU_Port_RX_OpStatusNodeID:               uint8(b[19]),
-						CMU_Port_RX_OpStatusGroupAcknowledgement: uint8(b[20]),
-						CMU_Port_RX_OpStatusUSN:                  uint8(b[21]),
-						CMU_Port_RX_OpParameterNodeID:            uint8(b[22]),
-						SystemOpStatus:                           uint8(b[23]),
-						SystemAuthMode:                           uint8(b[24]),
-						SystemSupplyVolt:                         binary.LittleEndian.Uint16(b[25:27]),
-						SystemAmbientTemp:                        uint8(b[27]),
-						SystemDeviceTime:                         binary.LittleEndian.Uint32(b[28:32]),
-						ShuntStateOfCharge:                       uint8(b[32]),
-						ShuntCelsius:                             uint8(b[33]),
-						ShuntNominalCapacityToFull:               Float64frombytes(b[36 : 36+8]),
-						ShuntNominalCapacityToEmpty:              Float64frombytes(b[38 : 38+8]),
-						ShuntPollerMode:                          uint8(b[42]),
-						ShuntStatus:                              uint8(b[43]),
-						ShuntLoStateOfChargeReCalibration:        bool(itob(int(b[44]))),
-						ShuntHiStateOfChargeReCalibration:        bool(itob(int(b[45]))),
-						ExpansionOutputBatteryOn:                 bool(itob(int(b[46]))),
-						ExpansionOutputBatteryOff:                bool(itob(int(b[47]))),
-						ExpansionOutputLoadOn:                    bool(itob(int(b[48]))),
-						ExpansionOutputLoadOff:                   bool(itob(int(b[49]))),
-						ExpansionOutputRelay1:                    bool(itob(int(b[50]))),
-						ExpansionOutputRelay2:                    bool(itob(int(b[51]))),
-						ExpansionOutputRelay3:                    bool(itob(int(b[52]))),
-						ExpansionOutputRelay4:                    bool(itob(int(b[53]))),
-						ExpansionOutputPWM1:                      binary.LittleEndian.Uint16(b[54:56]),
-						ExpansionOutputPWM2:                      binary.LittleEndian.Uint16(b[56:58]),
-						ExpansionInputRunLEDMode:                 bool(itob(int(b[58]))),
-						ExpansionInputChargeNormalMode:           bool(itob(int(b[59]))),
-						ExpansionInputBatteryContactor:           bool(itob(int(b[60]))),
-						ExpansionInputLoadContactor:              bool(itob(int(b[61]))),
-						ExpansionInputSignalIn:                   uint8(b[62]),
-						ExpansionInputAIN1:                       binary.LittleEndian.Uint16(b[63:65]),
-						ExpansionInputAIN2:                       binary.LittleEndian.Uint16(b[65:67]),
-						MinBypassSession:                         Float64frombytes(b[67 : 67+8]),
-						MaxBypassSession:                         Float64frombytes(b[71 : 71+8]),
-						MinBypassSessionReference:                uint8(b[75]),
-						MaxBypassSessionReference:                uint8(b[76]),
-						RebalanceBypassExtra:                     bool(itob(int(b[77]))),
+					c := &batrium.TelemetryCombinedStatusFastInfo{
+						MessageType:                           fmt.Sprintf("%s", "0x3F33"),
+						SystemID:                              a.SystemID,
+						HubID:                                 a.HubID,
+						CMUPollerMode:                         uint8(b[8]),
+						CMUPortTXAckCount:                     uint8(b[9]),
+						CMUPortTXOpStatusNodeID:               uint8(b[10]),
+						CMUPortTXOpStatusUSN:                  uint8(b[11]),
+						CMUPortTXOpParameterNodeID:            uint8(b[12]),
+						GroupMinCellVolt:                      binary.LittleEndian.Uint16(b[13:15]),
+						GroupMaxCellVolt:                      binary.LittleEndian.Uint16(b[15:17]),
+						GroupMinCellTemp:                      uint8(b[17]),
+						GroupMaxCellTemp:                      uint8(b[18]),
+						CMUPortRXOpStatusNodeID:               uint8(b[19]),
+						CMUPortRXOpStatusGroupAcknowledgement: uint8(b[20]),
+						CMUPortRXOpStatusUSN:                  uint8(b[21]),
+						CMUPortRXOpParameterNodeID:            uint8(b[22]),
+						SystemOpStatus:                        uint8(b[23]),
+						SystemAuthMode:                        uint8(b[24]),
+						SystemSupplyVolt:                      binary.LittleEndian.Uint16(b[25:27]),
+						SystemAmbientTemp:                     uint8(b[27]),
+						SystemDeviceTime:                      binary.LittleEndian.Uint32(b[28:32]),
+						ShuntStateOfCharge:                    uint8(b[32]),
+						ShuntCelsius:                          uint8(b[33]),
+						ShuntNominalCapacityToFull:            Float64frombytes(b[36 : 36+8]),
+						ShuntNominalCapacityToEmpty:           Float64frombytes(b[38 : 38+8]),
+						ShuntPollerMode:                       uint8(b[42]),
+						ShuntStatus:                           uint8(b[43]),
+						ShuntLoStateOfChargeReCalibration:     bool(itob(int(b[44]))),
+						ShuntHiStateOfChargeReCalibration:     bool(itob(int(b[45]))),
+						ExpansionOutputBatteryOn:              bool(itob(int(b[46]))),
+						ExpansionOutputBatteryOff:             bool(itob(int(b[47]))),
+						ExpansionOutputLoadOn:                 bool(itob(int(b[48]))),
+						ExpansionOutputLoadOff:                bool(itob(int(b[49]))),
+						ExpansionOutputRelay1:                 bool(itob(int(b[50]))),
+						ExpansionOutputRelay2:                 bool(itob(int(b[51]))),
+						ExpansionOutputRelay3:                 bool(itob(int(b[52]))),
+						ExpansionOutputRelay4:                 bool(itob(int(b[53]))),
+						ExpansionOutputPWM1:                   binary.LittleEndian.Uint16(b[54:56]),
+						ExpansionOutputPWM2:                   binary.LittleEndian.Uint16(b[56:58]),
+						ExpansionInputRunLEDMode:              bool(itob(int(b[58]))),
+						ExpansionInputChargeNormalMode:        bool(itob(int(b[59]))),
+						ExpansionInputBatteryContactor:        bool(itob(int(b[60]))),
+						ExpansionInputLoadContactor:           bool(itob(int(b[61]))),
+						ExpansionInputSignalIn:                uint8(b[62]),
+						ExpansionInputAIN1:                    binary.LittleEndian.Uint16(b[63:65]),
+						ExpansionInputAIN2:                    binary.LittleEndian.Uint16(b[65:67]),
+						MinBypassSession:                      Float64frombytes(b[67 : 67+8]),
+						MaxBypassSession:                      Float64frombytes(b[71 : 71+8]),
+						MinBypassSessionReference:             uint8(b[75]),
+						MaxBypassSessionReference:             uint8(b[76]),
+						RebalanceBypassExtra:                  bool(itob(int(b[77]))),
 
 						//RebalanceBypassExtra: bool(b[77]),
 						//RepeatCellVoltCounter: uint16(b[78:]),
@@ -1094,10 +279,10 @@ func main() {
 					}
 				case "0x4732": // Telemetry - Logic Control Status Info, [Json]
 					continue
-					c := &TelemetryLogicControlStatusInfo{
+					c := &batrium.TelemetryLogicControlStatusInfo{
 						MessageType:                         fmt.Sprintf("%s", "0x4732"),
-						systemId:                            a.systemId,
-						hubId:                               a.hubId,
+						SystemID:                            a.SystemID,
+						HubID:                               a.HubID,
 						CriticalIsBatteryOKCurrentState:     bool(itob(int(b[8]))),
 						CriticalIsBatteryOKLiveCalc:         bool(itob(int(b[9]))),
 						CriticalIsTransition:                bool(itob(int(b[10]))),
@@ -1177,13 +362,13 @@ func main() {
 					}
 				case "0x4932": // Telemetry - Remote Status Info, [Json]
 					continue
-					c := &TelemetryRemoteStatusInfo{
+					c := &batrium.TelemetryRemoteStatusInfo{
 						MessageType:            fmt.Sprintf("%s", "0x4932"),
-						systemId:               a.systemId,
-						hubId:                  a.hubId,
-						CanbusRX_ticks:         uint8(b[8]),
-						CanbusRX_unknown_ticks: uint8(b[9]),
-						CanbusTX_ticks:         uint8(b[10]),
+						SystemID:               a.SystemID,
+						HubID:                  a.HubID,
+						CanbusRXTicks:          uint8(b[8]),
+						CanbusRXUnknownTicks:   uint8(b[9]),
+						CanbusTXTicks:          uint8(b[10]),
 						ChargeActualCelsius:    uint8(b[11]),
 						ChargeTargetVolt:       binary.LittleEndian.Uint16(b[12:14]),
 						ChargeTargetAmp:        binary.LittleEndian.Uint16(b[14:16]),
@@ -1194,7 +379,7 @@ func main() {
 						ChargeActualFlags1:     binary.LittleEndian.Uint32(b[24 : 24+4]),
 						ChargeActualFlags2:     binary.LittleEndian.Uint32(b[28 : 28+4]),
 						ChargeActualRxTime:     binary.LittleEndian.Uint32(b[32 : 32+4]),
-						reserved:               uint8(b[36]),
+						Reserved:               uint8(b[36]),
 						DischargeActualCelsius: uint8(b[37]),
 						DischargeTargetVolt:    binary.LittleEndian.Uint16(b[38:40]),
 						DischargeTargetAmp:     binary.LittleEndian.Uint16(b[40:42]),
@@ -1213,10 +398,10 @@ func main() {
 					}
 				case "0x6131": // Telemetry - Communication Status Info, [Json]
 					continue
-					c := &TelemetryCommunicationStatusInfo{
+					c := &batrium.TelemetryCommunicationStatusInfo{
 						MessageType:           fmt.Sprintf("%s", "0x6131"),
-						systemId:              a.systemId,
-						hubId:                 a.hubId,
+						SystemID:              a.SystemID,
+						HubID:                 a.HubID,
 						DeviceTime:            binary.LittleEndian.Uint32(b[8 : 8+4]),
 						SystemOpstatus:        uint8(b[12]),
 						SystemAuthMode:        uint8(b[13]),
@@ -1246,10 +431,10 @@ func main() {
 					}
 				case "0x4032": // Telemetry - Combined Status Slow Info, [Json]
 					continue
-					c := &TelemetryCombinedStatusSlowInfo{
+					c := &batrium.TelemetryCombinedStatusSlowInfo{
 						MessageType:                         fmt.Sprintf("%s", "0x4032"),
-						systemId:                            a.systemId,
-						hubId:                               a.hubId,
+						SystemID:                            a.SystemID,
+						HubID:                               a.HubID,
 						SysStartupTime:                      binary.LittleEndian.Uint32(b[8 : 8+4]),
 						SysProcessControl:                   bool(itob(int(b[12]))),
 						SysIsInitialStartUp:                 bool(itob(int(b[13]))),
@@ -1287,10 +472,10 @@ func main() {
 					continue
 				case "0x5432": // Telemetry - Daily Session Info, [Json]
 					continue
-					c := &TelemetryDailySessionInfo{
+					c := &batrium.TelemetryDailySessionInfo{
 						MessageType:            fmt.Sprintf("%s", "0x5432"),
-						systemId:               a.systemId,
-						hubId:                  a.hubId,
+						SystemID:               a.SystemID,
+						HubID:                  a.HubID,
 						MinCellVoltage:         binary.LittleEndian.Uint16(b[8 : 8+2]),
 						MaxCellVoltage:         binary.LittleEndian.Uint16(b[10 : 10+2]),
 						MinSupplyVoltage:       binary.LittleEndian.Uint16(b[12 : 12+2]),
@@ -1333,18 +518,18 @@ func main() {
 					}
 				case "0x7857": // Telemetry - Shunt Metric Info, [Json]
 					continue
-					c := &TelemetryShuntMetricsInfo{
+					c := &batrium.TelemetryShuntMetricsInfo{
 						MessageType:                       fmt.Sprintf("%s", "0x7857"),
-						systemId:                          a.systemId,
-						hubId:                             a.hubId,
+						SystemID:                          a.SystemID,
+						HubID:                             a.HubID,
 						ShuntSoCCycles:                    binary.LittleEndian.Uint16(b[8 : 8+2]),
 						LastTimeAccumulationSaved:         binary.LittleEndian.Uint32(b[10 : 10+4]),
-						LastTimeSoC_LoRecal:               binary.LittleEndian.Uint32(b[14 : 14+4]),
-						LastTimeSoC_HiRecal:               binary.LittleEndian.Uint32(b[18 : 18+4]),
-						LastTimeSoC_LoCount:               binary.LittleEndian.Uint32(b[22 : 22+4]),
-						LastTimeSoC_HiCount:               binary.LittleEndian.Uint32(b[26 : 26+4]),
-						HasShuntSoC_LoCount:               bool(itob(int(b[30]))),
-						HasShuntSoC_HiCount:               bool(itob(int(b[31]))),
+						LastTimeSoCLoRecal:                binary.LittleEndian.Uint32(b[14 : 14+4]),
+						LastTimeSoCHiRecal:                binary.LittleEndian.Uint32(b[18 : 18+4]),
+						LastTimeSoCLoCount:                binary.LittleEndian.Uint32(b[22 : 22+4]),
+						LastTimeSoCHiCount:                binary.LittleEndian.Uint32(b[26 : 26+4]),
+						HasShuntSoCLoCount:                bool(itob(int(b[30]))),
+						HasShuntSoCHiCount:                bool(itob(int(b[31]))),
 						EstimatedDurationToFullInMinutes:  binary.LittleEndian.Uint16(b[32 : 32+2]),
 						EstimatedDurationToEmptyInMinutes: binary.LittleEndian.Uint16(b[34 : 34+2]),
 						RecentChargeInAvgmAh:              Float64frombytes(b[36 : 36+8]),
@@ -1364,10 +549,10 @@ func main() {
 					continue
 				case "0x5632": // Telemetry - Lifetime Metric Info, [Json]
 					continue
-					c := &TelemetryLifetimeMetricsInfo{
+					c := &batrium.TelemetryLifetimeMetricsInfo{
 						MessageType:                         fmt.Sprintf("%s", "0x5632"),
-						systemId:                            a.systemId,
-						hubId:                               a.hubId,
+						SystemID:                            a.SystemID,
+						HubID:                               a.HubID,
 						FirstSyncTime:                       binary.LittleEndian.Uint32(b[8 : 8+4]),
 						CountStartup:                        binary.LittleEndian.Uint32(b[12 : 12+4]),
 						CountCriticalBatteryOK:              binary.LittleEndian.Uint32(b[16 : 16+4]),
@@ -1404,10 +589,10 @@ func main() {
 					continue
 				case "0x4A35": // Hardware - System setup configuration Info
 					continue
-					c := &HardwareSystemSetupConfigurationInfo{
+					c := &batrium.HardwareSystemSetupConfigurationInfo{
 						MessageType:          fmt.Sprintf("%s", "0x4A35"),
-						systemId:             a.systemId,
-						hubId:                a.hubId,
+						SystemID:             a.SystemID,
+						HubID:                a.HubID,
 						SystemCode:           fmt.Sprintf("%s", b[10:10+8]),
 						SystemName:           fmt.Sprintf("%s", b[18:18+20]),
 						AssetCode:            fmt.Sprintf("%s", b[36:36+20]),
@@ -1424,8 +609,8 @@ func main() {
 
 					if display == true {
 						fmt.Printf("MessageType: %s\n", a.MessageType)
-						fmt.Printf("systemId: %d\n", a.systemId)
-						fmt.Printf("hubId: %d\n", a.hubId)
+						fmt.Printf("SystemID: %d\n", a.SystemID)
+						fmt.Printf("HubID: %d\n", a.HubID)
 						fmt.Printf("SetupVersion: %d\n", c.SetupVersion)
 						fmt.Printf("SystemCode: %s\n", c.SystemCode)
 						fmt.Printf("SystemName: %s\n", c.SystemName)
@@ -1442,7 +627,7 @@ func main() {
 					}
 				case "0x4B35": // Hardware - Cell Group setup configuration Info
 					continue
-					c := &HardwareCellGroupSetupConfigurationInfo{
+					c := &batrium.HardwareCellGroupSetupConfigurationInfo{
 						SetupVersion:                  uint8(b[8]),
 						BatteryTypeID:                 uint8(b[9]),
 						FirstNodeID:                   uint8(b[10]),
@@ -1458,11 +643,11 @@ func main() {
 						DiffNomCellsInSeries:          bool(itob(int(b[25]))),
 						NomCellsInSeries:              uint8(b[26]),
 						AllowEntireRange:              bool(itob(int(b[27]))),
-						FirstNodeIdOfEntireRange:      uint8(b[28]),
-						LastNodeIdOfEntireRange:       uint8(b[29]),
+						FirstNodeIDOfEntireRange:      uint8(b[28]),
+						LastNodeIDOfEntireRange:       uint8(b[29]),
 						BypassExtraMode:               uint8(b[30]),
 						BypassLatchInterval:           binary.LittleEndian.Uint16(b[31 : 31+2]),
-						CellMonTypeId:                 uint8(b[33]),
+						CellMonTypeID:                 uint8(b[33]),
 						BypassImpedance:               Float64frombytes(b[34 : 34+8]),
 						BypassCellVoltLowCutout:       binary.LittleEndian.Uint16(b[38 : 38+2]),
 						BypassShuntAmpLimitCharge:     binary.LittleEndian.Uint16(b[40 : 40+2]),
@@ -1490,11 +675,11 @@ func main() {
 						fmt.Printf("DiffNomCellsInSeries: %t\n", c.DiffNomCellsInSeries)
 						fmt.Printf("NomCellsInSeries: %d\n", c.NomCellsInSeries)
 						fmt.Printf("AllowEntireRange: %t\n", c.AllowEntireRange)
-						fmt.Printf("FirstNodeIdOfEntireRange: %d\n", c.FirstNodeIdOfEntireRange)
-						fmt.Printf("LastNodeIdOfEntireRange: %d\n", c.LastNodeIdOfEntireRange)
+						fmt.Printf("FirstNodeIDOfEntireRange: %d\n", c.FirstNodeIDOfEntireRange)
+						fmt.Printf("LastNodeIDOfEntireRange: %d\n", c.LastNodeIDOfEntireRange)
 						fmt.Printf("BypassExtraMode: %d\n", c.BypassExtraMode)
 						fmt.Printf("BypassLatchInterval: %d\n", c.BypassLatchInterval)
-						fmt.Printf("CellMonTypeId: %d\n", c.CellMonTypeId)
+						fmt.Printf("CellMonTypeID: %d\n", c.CellMonTypeID)
 						fmt.Printf("BypassImpedance: %f\n", c.BypassImpedance)
 						fmt.Printf("BypassCellVoltLowCutout: %d\n", c.BypassCellVoltLowCutout)
 						fmt.Printf("BypassShuntAmpLimitCharge: %d\n", c.BypassShuntAmpLimitCharge)
@@ -1507,7 +692,7 @@ func main() {
 					}
 				case "0x4C33": // Hardware - Shunt setup configuration Info
 					continue
-					c := &HardwareShuntSetupConfigurationInfo{
+					c := &batrium.HardwareShuntSetupConfigurationInfo{
 						ShuntTypeID:                  uint8(b[8]),
 						VoltageScale:                 binary.LittleEndian.Uint16(b[9 : 9+2]),
 						AmpScale:                     binary.LittleEndian.Uint16(b[11 : 11+2]),
@@ -1562,7 +747,7 @@ func main() {
 					}
 				case "0x4D33": // Hardware - Expansion setup configuration Info
 					continue
-					c := &HardwareExpansionSetupConfigurationInfo{
+					c := &batrium.HardwareExpansionSetupConfigurationInfo{
 						SetupVersion:          uint8(b[8]),
 						ExtensionTemplate:     uint8(b[9]),
 						NeoPixelExtStatusMode: uint8(b[10]),
@@ -1614,24 +799,24 @@ func main() {
 				case "0x5334": // Hardware - Integration setup configuration Info
 					continue
 
-					c := &HardwareIntegrationSetupConfigurationInfo{
-						SetupVersion:         uint8(b[8]),
-						USBTX_Broadcast:      bool(itob(int(b[9]))),
-						WifiUDP_TX_Broadcast: bool(itob(int(b[10]))),
-						WifiBroadcastMode:    uint8(b[11]),
-						CanbusTX_Broadcast:   bool(itob(int(b[11]))),
-						CanbusMode:           uint8(b[12]),
-						CanbusRemoteAddress:  binary.LittleEndian.Uint32(b[13 : 13+4]),
-						CanbusBaseAddress:    binary.LittleEndian.Uint32(b[13 : 13+4]),
-						CanbusGroupAddress:   binary.LittleEndian.Uint32(b[13 : 13+4]),
+					c := &batrium.HardwareIntegrationSetupConfigurationInfo{
+						SetupVersion:        uint8(b[8]),
+						USBTXBroadcast:      bool(itob(int(b[9]))),
+						WifiUDPTXBroadcast:  bool(itob(int(b[10]))),
+						WifiBroadcastMode:   uint8(b[11]),
+						CanbusTXBroadcast:   bool(itob(int(b[11]))),
+						CanbusMode:          uint8(b[12]),
+						CanbusRemoteAddress: binary.LittleEndian.Uint32(b[13 : 13+4]),
+						CanbusBaseAddress:   binary.LittleEndian.Uint32(b[13 : 13+4]),
+						CanbusGroupAddress:  binary.LittleEndian.Uint32(b[13 : 13+4]),
 					}
 
 					if display == true {
 						fmt.Printf("SetupVersion: %d\n", c.SetupVersion)
-						fmt.Printf("USBTX_Broadcast: %t\n", c.USBTX_Broadcast)
-						fmt.Printf("WifiUDP_TX_Broadcast: %t\n", c.WifiUDP_TX_Broadcast)
+						fmt.Printf("USBTXBroadcast: %t\n", c.USBTXBroadcast)
+						fmt.Printf("WifiUDPTXBroadcast: %t\n", c.WifiUDPTXBroadcast)
 						fmt.Printf("WifiBroadcastMode: %d\n", c.WifiBroadcastMode)
-						fmt.Printf("CanbusTX_Broadcast: %t\n", c.CanbusTX_Broadcast)
+						fmt.Printf("CanbusTXBroadcast: %t\n", c.CanbusTXBroadcast)
 						fmt.Printf("CanbusMode: %d\n", c.CanbusMode)
 						fmt.Printf("CanbusRemoteAddress: %d\n", c.CanbusRemoteAddress)
 						fmt.Printf("CanbusBaseAddress: %d\n", c.CanbusBaseAddress)
@@ -1639,10 +824,10 @@ func main() {
 					}
 				case "0x4F33": // Control logic – Critical setup configuration Info
 					continue
-					c := &ControlLogicCriticalSetupConfigurationInfo{
+					c := &batrium.ControlLogicCriticalSetupConfigurationInfo{
 						MessageType:                   fmt.Sprintf("%s", "0x4F33"),
-						systemId:                      a.systemId,
-						hubId:                         a.hubId,
+						SystemID:                      a.SystemID,
+						HubID:                         a.HubID,
 						ControlMode:                   uint8(b[8]),
 						AutoRecovery:                  bool(itob(int(b[9]))),
 						IgnoreOverdueCells:            bool(itob(int(b[10]))),
@@ -1686,10 +871,10 @@ func main() {
 					continue
 				case "0x5033": // Control logic - Charge setup configuration Info, [WIP]
 					continue
-					c := &ControlLogicChargeSetupConfigurationInfo{
+					c := &batrium.ControlLogicChargeSetupConfigurationInfo{
 						MessageType:               fmt.Sprintf("%s", "0x5033"),
-						systemId:                  a.systemId,
-						hubId:                     a.hubId,
+						SystemID:                  a.SystemID,
+						HubID:                     a.HubID,
 						ControlMode:               uint8(b[8]),
 						AllowLimitedPowerStage:    bool(itob(int(b[9]))),
 						AllowLimitedPowerBypass:   bool(itob(int(b[10]))),
@@ -1730,10 +915,10 @@ func main() {
 					}
 				case "0x5158": // Control logic - Discharge setup configuration Info, [WIP]
 					continue
-					c := &ControlLogicDischargeSetupConfigurationInfo{
+					c := &batrium.ControlLogicDischargeSetupConfigurationInfo{
 						MessageType:              fmt.Sprintf("%s", "0x5158"),
-						systemId:                 a.systemId,
-						hubId:                    a.hubId,
+						SystemID:                 a.SystemID,
+						HubID:                    a.HubID,
 						ControlMode:              uint8(b[8]),
 						AllowLimitedPowerStage:   bool(itob(int(b[9]))),
 						MonitorCellTempLow:       bool(itob(int(b[10]))),
@@ -1769,10 +954,10 @@ func main() {
 					continue
 				case "0x5258": // Control logic - Thermal setup configuration Info, [WIP]
 					continue
-					c := &ControlLogicThermalSetupConfigurationInfo{
+					c := &batrium.ControlLogicThermalSetupConfigurationInfo{
 						MessageType:            fmt.Sprintf("%s", "0x5258"),
-						systemId:               a.systemId,
-						hubId:                  a.hubId,
+						SystemID:               a.SystemID,
+						HubID:                  a.HubID,
 						ControlModeHeat:        uint8(b[8]),
 						MonitorLowCellTemp:     bool(itob(int(b[9]))),
 						MonitorLowAmbientTemp:  bool(itob(int(b[0]))),
@@ -1797,7 +982,7 @@ func main() {
 					continue
 				case "0x4E58": // Control logic - Remote setup configuration Info
 					continue
-					c := &ControlLogicRemoteSetupConfigurationInfo{
+					c := &batrium.ControlLogicRemoteSetupConfigurationInfo{
 						MessageType:                  fmt.Sprintf("%s", "0x4E58"),
 						ChargeNormalVolt:             binary.LittleEndian.Uint16(b[8 : 8+2]),
 						ChargeNormalAmp:              binary.LittleEndian.Uint16(b[10 : 10+2]),
@@ -1825,7 +1010,7 @@ func main() {
 					}
 					continue
 				case "0x5831": // Telemetry - Daily Session History, [WIP]
-					c := &TelemetryDailySessionHistoryReply{
+					c := &batrium.TelemetryDailySessionHistoryReply{
 						RecordIndex:            binary.LittleEndian.Uint16(b[8 : 8+2]),
 						RecordTime:             binary.LittleEndian.Uint32(b[10 : 10+4]),
 						CriticalEvents:         uint8(b[14]),
@@ -1868,10 +1053,10 @@ func main() {
 					continue
 				case "0x6831": // Telemetry - Quick Session History, [WIP]
 					continue
-					c := &TelemetryQuickSessionHistoryReply{
+					c := &batrium.TelemetryQuickSessionHistoryReply{
 						MessageType:           fmt.Sprintf("%s", "0x6831"),
-						systemId:              a.systemId,
-						hubId:                 a.hubId,
+						SystemID:              a.SystemID,
+						HubID:                 a.HubID,
 						RecordIndex:           binary.LittleEndian.Uint16(b[8 : 8+2]),
 						RecordTime:            binary.LittleEndian.Uint32(b[10 : 10+4]),
 						SystemOpStatus:        uint8(b[14]),
@@ -1880,7 +1065,7 @@ func main() {
 						MaxCellVoltage:        binary.LittleEndian.Uint16(b[18 : 18+2]),
 						AvgCellVoltage:        binary.LittleEndian.Uint16(b[20 : 20+2]),
 						AvgTemperature:        uint8(b[22]),
-						ShuntSoC_PercentHiRes: binary.LittleEndian.Uint16(b[23 : 23+2]),
+						ShuntSoCPercentHiRes:  binary.LittleEndian.Uint16(b[23 : 23+2]),
 						ShuntVolt:             binary.LittleEndian.Uint16(b[25 : 25+2]),
 						ShuntCurrent:          Float64frombytes(b[27 : 27+8]),
 						NumberOfCellsInBypass: uint8(b[31]),
@@ -1891,10 +1076,10 @@ func main() {
 					}
 					continue
 				case "0x5431": // Telemetry - Session Metrics, [WIP]
-					c := &TelemetrySessionMetrics{
+					c := &batrium.TelemetrySessionMetrics{
 						MessageType:                 fmt.Sprintf("%s", "0x5431"),
-						systemId:                    a.systemId,
-						hubId:                       a.hubId,
+						SystemID:                    a.SystemID,
+						HubID:                       a.HubID,
 						RecentTimeQuickSession:      binary.LittleEndian.Uint32(b[8 : 8+4]),
 						QuickSessionNumberOfRecords: binary.LittleEndian.Uint16(b[12 : 12+2]),
 						QuickSessionRecordCapacity:  binary.LittleEndian.Uint16(b[14 : 14+2]),
