@@ -8,48 +8,108 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"math"
 )
 
-// Wireformat ... is in the form of SystemDiscoveryInfo
-type WireFormatSystemDiscoveryInfo struct {
-	HeaderCharacter         byte   // 0 always a Colon
-	MessageType             uint16 // 1
-	Comma                   byte   // 3
-	SystemID                uint16 // 4, 5
-	HubID                   uint16 // 6, 7
-	SystemCode1             byte   // 8,9,10,11,12,13,14,15
-	SystemCode2             byte
-	SystemCode3             byte
-	SystemCode4             byte
-	SystemCode5             byte
-	SystemCode6             byte
-	SystemCode7             byte
-	SystemCode8             byte
-	FirmwareVersion         uint16  // 16, 17
-	HardwareVersion         uint16  // 18, 19
-	DeviceTime              uint32  // 20, 21, 22, 23
-	SystemOpstatus          uint8   // 24
-	SystemAuthMode          uint8   // 25
-	CriticalBattOkState     bool    // 26
-	ChargePowerRateState    uint8   // 27
-	DischargePowerRateState uint8   // 28
-	HeatOnState             bool    // 29
-	CoolOnState             bool    // 30
-	MinCellVolt             uint16  // 31, 32
-	MaxCellVolt             uint16  // 33, 34
-	AvgCellVolt             uint16  // 35, 36
-	MinCellTemp             uint8   // 37
-	NumOfActiveCellmons     uint8   // 38
-	CMUPortRxUSN            uint8   // 39
-	CMUPollerMode           uint8   // 40
-	ShuntSoC                uint8   // 41
-	ShuntVoltage            uint16  // 42, 43
-	ShuntCurrent            float32 // 44, 45, 46, 47
-	ShuntStatus             uint8   // 48
-	ShuntRXTicks            uint8   // 49
+type Wireformat interface {
+	getMessageType() uint16
+	getData() []byte
 }
 
-type WireFormatIndividualCellMonitorBasicStatus struct {
+type SystemDiscoveryInfo struct {
+}
+
+func (sdi SystemDiscoveryInfo) getMessageType() uint16 {
+		return uint16(0x5732)
+}
+
+func (sdi SystemDiscoveryInfo) getData() []byte {
+
+	// create the byte slice.
+	// append all data to the byte slice
+
+	slice := make([]byte, 0)
+	slice = append(slice, byte(0x3a)) // 0
+	slice = append(slice, byte(0x32)) // 2
+	slice = append(slice, byte(0x57)) // 1
+	slice = append(slice, byte(0x2c)) // 3
+	b4 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b4, uint16(10000))
+  slice = append(slice, b4[0], b4[1]) // 4, 5
+
+	b6 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b6, uint16(0))
+	slice = append(slice, b6[0], b6[1]) // 6, 7
+
+	slice = append(slice, byte(0x53)) // 8
+	slice = append(slice, byte(0x59)) // 9
+	slice = append(slice, byte(0x53)) // 10
+	slice = append(slice, byte(0x36)) // 11
+	slice = append(slice, byte(0x31)) // 12
+	slice = append(slice, byte(0x33)) // 13
+	slice = append(slice, byte(0x39)) // 14
+	slice = append(slice, byte(0x00)) // 15
+
+	b16 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b16, uint16(130))
+	slice = append(slice, b16[0], b16[1]) // 16, 17
+
+	b18 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b18, uint16(0))
+	slice = append(slice, b18[0], b18[1]) // 18, 19
+
+	b20 := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b20, uint32(1588729173))
+	slice = append(slice, b20[0], b20[1], b20[2], b20[3]) // 20, 21, 22, 23
+
+	slice = append(slice, byte(0)) // 24
+	slice = append(slice, byte(0))// 25
+
+	slice = append(slice, Btoi(false)) // 26
+	//slice = append(slice, Btoi(false)) // 26
+
+	slice = append(slice, byte(0)) // 27
+	slice = append(slice, byte(0)) // 28
+
+	slice = append(slice, Btoi(false)) // 29
+	//slice = append(slice, Btoi(false)) // 29
+
+	slice = append(slice, Btoi(false)) // 30
+	//slice = append(slice, Btoi(false)) // 30
+
+	b31 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b31, uint16(3000))
+	slice = append(slice, b31[0], b31[1]) // 31, 32
+
+	b33 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b33, uint16(4200))
+	slice = append(slice, b33[0], b33[1]) // 33, 34
+
+	b35 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b35, uint16(0))
+	slice = append(slice, b35[0], b35[1]) // 35, 36
+
+	slice = append(slice, byte(0)) // 37
+	slice = append(slice, byte(0)) // 38
+	slice = append(slice, byte(0)) // 39
+	slice = append(slice, byte(0)) // 40
+	slice = append(slice, byte(0)) // 41
+
+	b42 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b42, uint16(0))
+	slice = append(slice, b42[0], b42[1]) // 42, 43
+
+	b44 := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b44, math.Float32bits(0.0))
+	slice = append(slice, b44[0], b44[1]) // 44, 45, 46, 47
+
+	slice = append(slice, byte(0)) // 48
+	slice = append(slice, byte(0)) // 49
+	return slice
+}
+
+/**
+type IndividualCellMonitorBasicStatus struct {
 	HeaderCharacter         byte   // 0 always a Colon
 	MessageType             uint16 // 1
 	Comma                   byte   // 3
@@ -62,7 +122,21 @@ type WireFormatIndividualCellMonitorBasicStatus struct {
 	LastNodeID  uint8
 }
 
-func sendMsg(dataIn WireFormatSystemDiscoveryInfo) {
+func (icmbs IndividualCellMonitorBasicStatus) getMessageType() Uint16 {
+    return Uint16(0x415a)
+}
+
+**/
+
+func Btoi(b bool) uint8 {
+	if b {
+		return uint8(1)
+	}
+	return uint8(0)
+}
+
+
+func sendMsg(dataIn Wireformat) {
 	conn, err := net.Dial("udp", "255.255.255.255:18542")
 	if err != nil {
 		log.Fatal(err)
@@ -71,11 +145,11 @@ func sendMsg(dataIn WireFormatSystemDiscoveryInfo) {
 
 	buf := new(bytes.Buffer)
 
-	if err := binary.Write(buf, binary.LittleEndian, dataIn); err != nil {
+	if err := binary.Write(buf, binary.LittleEndian, dataIn.getData()); err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("0x%X\n", dataIn.MessageType)
+	fmt.Printf("0x%X\n", dataIn.getMessageType())
 
 	log.Printf("OK: %x Sent\n", buf.Bytes())
 
@@ -88,36 +162,7 @@ func sendMsg(dataIn WireFormatSystemDiscoveryInfo) {
 
 func main() {
 
-	dataIn := WireFormatSystemDiscoveryInfo{
-		byte(0x3a),                                                                                     // 0
-		uint16(0x5732),                                                                                 // 1,2
-		byte(0x2c),                                                                                     // 3
-		uint16(10000),                                                                                  // 4, 5
-		uint16(0),                                                                                      // 6, 7
-		byte(0x53), byte(0x59), byte(0x53), byte(0x36), byte(0x31), byte(0x33), byte(0x39), byte(0x0), // 8, 9, 10 ,11 ,12, 13, 14, 15
-		uint16(130),        // 16, 17
-		uint16(0),          // 18, 19
-		uint32(1588729173), // 20, 21, 22, 23
-		uint8(0),           // 24
-		uint8(0),           // 25
-		bool(false),        // 26
-		uint8(0),           // 27
-		uint8(0),           // 28
-		bool(false),        // 29
-		bool(false),        // 30
-		uint16(3000),       // 31, 32
-		uint16(4200),       // 33, 34
-		uint16(0),          // 35, 36
-		uint8(0),           // 37
-		uint8(0),           // 38
-		uint8(0),           // 39
-		uint8(0),           // 40
-		uint8(0),           // 41
-		uint16(0),          // 42, 43
-		float32(0.0),       // 44, 45, 46, 47
-		uint8(0),           // 48
-		uint8(0),           // 49
-	}
+	dataIn := SystemDiscoveryInfo{}
 
 	sendMsg(dataIn)
 
