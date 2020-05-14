@@ -73,7 +73,6 @@ func main() {
 					fmt.Println("a.SystemID:", a.SystemID)
 					fmt.Println("a.HubID:", a.HubID)
 
-					//continue
 					fmt.Println("SystemDiscoveryInfo: OK.")
 					c := &batrium.SystemDiscoveryInfo{
 						MessageType:             fmt.Sprintf("%s", "0x5732"),
@@ -107,9 +106,7 @@ func main() {
 					}
 
 				case "0x415A": // Individual cell monitor Basic Status (subset for up to 16)
-					continue
-					var idx int
-					idx = 12
+					fmt.Println("IndividualCellMonitorBasicStatus: OK.")
 
 					c := &batrium.IndividualCellMonitorBasicStatus{
 						MessageType: a.MessageType,
@@ -121,21 +118,12 @@ func main() {
 						LastNodeID:  uint8(b[15]),
 					}
 
-					fmt.Printf("SystemID: %d\n", c.SystemID)
-					fmt.Printf("HubID: %d\n", c.HubID)
-					fmt.Printf("CmuPort: %d\nRecords: %d\nFirstNodeID: %d\nLastNodeID: %d\n", c.CmuPort, c.Records, c.FirstNodeID, c.LastNodeID)
-					//jsonOutput, _ := json.Marshal(c)
-					//fmt.Println(string(jsonOutput))
-
-					for idx < cc {
-						fmt.Printf("NodeID %d, USN %d, MinCellVoltage %d, MaxCellVoltage %d ", uint8(b[idx+0]), uint8(b[idx+1]), binary.LittleEndian.Uint16(b[idx+2:idx+2+2]), binary.LittleEndian.Uint16(b[idx+4:idx+4+2]))
-						fmt.Printf("MaxCellTemp %d, BypassTemp %d, BypassAmp %d ", uint8(b[idx+6]), uint8(b[idx+7]), binary.LittleEndian.Uint16(b[idx+8:idx+8+2]))
-						fmt.Printf("Status %d\n", uint8(b[idx+10]))
-						idx = idx + 11
+					if display == true {
+						jsonOutput, _ := json.MarshalIndent(c, "", "    ")
+						fmt.Println(string(jsonOutput))
 					}
-
-					fmt.Printf("totalSize %d\n", cc)
 				case "0x4232": // Individual cell monitor Full Info (node specific), [Json]
+				fmt.Println("IndividualCellMonitorFullInfo: OK.")
 					continue
 					c := &batrium.IndividualCellMonitorFullInfo{
 						MessageType:             fmt.Sprintf("%s", "0x4232"),
