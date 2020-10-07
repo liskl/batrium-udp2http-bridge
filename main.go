@@ -14,8 +14,13 @@ import (
 	//"strings"
 )
 
+// UDPport port we listen on for UDP broadcasts: defaults to 18542"
 const UDPport = 18542
+
+// UDPhost address we bind to for listening to UDP broadcasts: defaults to 0.0.0.0"
 const UDPhost = "0.0.0.0"
+
+// display be annoying on stdout :)
 const display = true
 
 func Float64frombytes(bytes []byte) float64 {
