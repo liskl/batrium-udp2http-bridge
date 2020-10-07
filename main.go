@@ -1,11 +1,11 @@
 package main
 
 import (
-	"./batrium"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/liskl/batrium-udp2http-bridge/batrium"
 	"log"
 	"math"
 	"net"
@@ -14,8 +14,8 @@ import (
 	//"strings"
 )
 
-const port = 18542
-const host = "0.0.0.0"
+const UDPport = 18542
+const UDPhost = "0.0.0.0"
 const display = true
 
 func Float64frombytes(bytes []byte) float64 {
@@ -38,12 +38,15 @@ func itob(i int) bool {
 	return bool(false)
 }
 
+func determineMessageType() {}
+
 func main() {
-	addr := net.UDPAddr{Port: port, IP: net.ParseIP(host)}
+	fmt.Printf("Starting: batrium-udp2http-bridge.")
+	addr := net.UDPAddr{Port: UDPport, IP: net.ParseIP(UDPhost)}
 
 	conn, err := net.ListenUDP("udp", &addr)
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(fmt.Printf("Listening for UDP Broadcasts: %v", err))
 	}
 
 	b := make([]byte, 4096)
@@ -123,7 +126,7 @@ func main() {
 						fmt.Println(string(jsonOutput))
 					}
 				case "0x4232": // Individual cell monitor Full Info (node specific), [Json]
-				fmt.Println("IndividualCellMonitorFullInfo: OK.")
+					fmt.Println("IndividualCellMonitorFullInfo: OK.")
 					continue
 					c := &batrium.IndividualCellMonitorFullInfo{
 						MessageType:             fmt.Sprintf("%s", "0x4232"),

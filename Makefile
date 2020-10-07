@@ -1,4 +1,4 @@
-APP?=batrium-udp-listener
+APP?=batrium-udp2http-bridge
 TAG?=latest
 REGISTRY?=registry.infra.liskl.com
 
@@ -7,11 +7,11 @@ BUILD_TIME?=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
 RELEASE?=$(shell cat ./versionInfo)
 
 clean:
-	docker rm -f "${APP}" "${APP}-tests" || true ;
-	#docker rmi -f "${APP}:${TAG}" || true ;
+	$(shell docker rm -f "${APP}" "${APP}-tests" || true )
+	$(shell docker rmi -f "${APP}:${TAG}" || true )
 
 format:
-	cd ./src/github.com/liskl/${APP} && go fmt ;
+	go fmt ;
 
 build: clean format
 	docker build \

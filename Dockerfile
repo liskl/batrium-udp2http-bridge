@@ -13,16 +13,16 @@ ENV RELEASE ${RELEASE}
 ENV COMMIT ${COMMIT}
 ENV BUILD_TIME ${BUILD_TIME}
 
-COPY ./src /go/src/github.com/liskl/batrium-udp2http-bridge
+COPY ./main.go /go/src/github.com/liskl/batrium-udp2http-bridge/main.go
+COPY ./batrium /go/src/github.com/liskl/batrium-udp2http-bridge/
+COPY ./UDPmodule /go/src/github.com/liskl/batrium-udp2http-bridge/
 
 WORKDIR /go/src/github.com/liskl/batrium-udp2http-bridge
 
-RUN find "$(pwd)"
-
-RUN cd ./UDPmodule \
+RUN cd /go/src/github.com/liskl/batrium-udp2http-bridge/UDPmodule \
     && go install ; \
     cd .. \
-    && go get \
+    && go get github.com/liskl/batrium-udp2http-bridge \
     && go build \
   		-ldflags "-s -w \
       -X ${PROJECT}/main.Release=${RELEASE} \
@@ -30,6 +30,7 @@ RUN cd ./UDPmodule \
       -X ${PROJECT}/main.BuildTime=${BUILD_TIME}" \
   		-o batrium-udp2http-bridge ;
 
+RUN find /go/src -type d
 
 # final stage
 FROM alpine
