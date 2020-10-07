@@ -7,4 +7,4 @@ collect all the metrics and expose them on as JSON on individual http routes.
 docker build -t batrium-udp2http-bridge . ;
 
 ## RUN
-docker run -it batrium-udp2http-bridge:latest ;
+docker run -it -p 18542:18542/udp batrium-udp2http-bridge:latest;

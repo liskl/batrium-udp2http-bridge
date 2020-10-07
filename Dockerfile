@@ -14,8 +14,8 @@ ENV COMMIT ${COMMIT}
 ENV BUILD_TIME ${BUILD_TIME}
 
 COPY ./main.go /go/src/github.com/liskl/batrium-udp2http-bridge/main.go
-COPY ./batrium /go/src/github.com/liskl/batrium-udp2http-bridge/
-COPY ./UDPmodule /go/src/github.com/liskl/batrium-udp2http-bridge/
+COPY ./batrium /go/src/github.com/liskl/batrium-udp2http-bridge/batrium
+COPY ./UDPmodule /go/src/github.com/liskl/batrium-udp2http-bridge/UDPmodule
 
 WORKDIR /go/src/github.com/liskl/batrium-udp2http-bridge
 
