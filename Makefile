@@ -24,7 +24,8 @@ build: clean format
 run: build
 	docker pull "${REGISTRY}/${APP}:${TAG}";
 	docker run --rm --name "${APP}" -it \
-	 "${REGISTRY}/${APP}:${TAG}" ;
+		-p 18542:18542/udp \
+		"${REGISTRY}/${APP}:${TAG}" ;
 
 test:
 	 cd ./src/github.com/liskl/${APP} \
