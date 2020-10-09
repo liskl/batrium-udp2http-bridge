@@ -25,6 +25,7 @@ run: build
 	docker pull "${REGISTRY}/${APP}:${TAG}";
 	docker run --rm --name "${APP}" -it \
 		-p 18542:18542/udp \
+		-p 8080:8080/tcp \
 		"${REGISTRY}/${APP}:${TAG}" ;
 
 test:
