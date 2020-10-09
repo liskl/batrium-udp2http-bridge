@@ -75,27 +75,31 @@ func itob(i int) bool {
 func YourHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Gorilla!\n"))
 	// SystemDiscoveryInfo, 0x5732
-
 }
 
 func YourHandler0x5732(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5732))
+	// IndividualCellMonitorBasicStatus, 0x5732
 }
 
 func YourHandler0x415A(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x415A))
+	// IndividualCellMonitorBasicStatus, 0x415A
 }
 
 func YourHandler0x4232(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4232))
+	// IndividualCellMonitorFullInfo, 0x4232
 }
 
 func YourHandler0x3E32(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x3E32))
+	// TelemetryCombinedStatusRapidInfo, 0x3E32
 }
 
 func YourHandler0x3F33(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x3F33))
+	// TelemetryCombinedStatusFastInfo, 0x3F33
 }
 
 func YourHandler0x4732(w http.ResponseWriter, r *http.Request) {
@@ -129,39 +133,51 @@ func YourHandler0x5632(w http.ResponseWriter, r *http.Request) {
 func YourHandler0x4A35(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4A35))
 }
+
 func YourHandler0x4B35(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4B35))
 }
+
 func YourHandler0x4C33(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4C33))
 }
+
 func YourHandler0x4D33(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4D33))
 }
+
 func YourHandler0x5334(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5334))
 }
+
 func YourHandler0x4F33(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4F33))
 }
+
 func YourHandler0x5033(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5033))
 }
+
 func YourHandler0x5158(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5158))
 }
+
 func YourHandler0x5258(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5258))
 }
+
 func YourHandler0x4E58(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x4E58))
 }
+
 func YourHandler0x5831(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5831))
 }
+
 func YourHandler0x6831(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x6831))
 }
+
 func YourHandler0x5431(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5431))
 }
@@ -186,7 +202,6 @@ func main() {
 	r.HandleFunc("/0x5432", YourHandler0x5432)
 	r.HandleFunc("/0x7857", YourHandler0x7857)
 	r.HandleFunc("/0x5632", YourHandler0x5632)
-
 	r.HandleFunc("/0x4A35", YourHandler0x4A35)
 	r.HandleFunc("/0x4B35", YourHandler0x4B35)
 	r.HandleFunc("/0x4C33", YourHandler0x4C33)
