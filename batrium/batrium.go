@@ -704,10 +704,9 @@ type ControlLogicThermalSetupConfigurationInfo struct {
 // ControlLogicRemoteSetupConfigurationInfo is the MessageType for 0x4E58
 // Not Implemented
 type ControlLogicRemoteSetupConfigurationInfo struct {
-	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
-
+	MessageType                  string `json:"MessageType"`
+	SystemID                     uint16 `json:"SystemID"`
+	HubID                        uint16 `json:"HubID"`
 	ChargeNormalVolt             uint16 `json:"ChargeNormalVolt"`
 	ChargeNormalAmp              uint16 `json:"ChargeNormalAmp"`
 	ChargeNormalVA               uint16 `json:"ChargeNormalVA"`
