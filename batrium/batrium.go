@@ -2,7 +2,15 @@ package batrium
 
 import (
 //"encoding/json"
+	"encoding/binary"
 )
+
+func Btoi(b bool) uint8 {
+	if b {
+		return uint8(1)
+	}
+	return uint8(0)
+}
 
 type SystemDiscoveryInfo struct { // 0x5732 DONE
 	MessageType             string  `json:"MessageType"`
@@ -73,6 +81,47 @@ type IndividualCellMonitorFullInfo struct {
 	BypassSessionmAh        uint8  `json:"BypassSessionmAh"`
 	RepeatCellV             uint8  `json:"RepeatCellV"`
 }
+
+func (icmfi IndividualCellMonitorFullInfo) getMessageType() uint16 {
+	return uint16(0x4232)
+}
+
+func (icmfi IndividualCellMonitorFullInfo) getData() []byte {
+
+	// create the byte slice.
+	// append all data to the byte slice
+
+	slice := make([]byte, 0)
+	slice = append(slice, byte(0x3a)) // 0
+
+	b1 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b1, uint16(0x4232))
+	slice = append(slice, b1[0], b1[1]) // 1, 2
+
+	slice = append(slice, byte(0x2c)) // 3
+	b4 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b4, uint16(10000))
+	slice = append(slice, b4[0], b4[1]) // 4, 5
+
+	b6 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b6, uint16(0))
+	slice = append(slice, b6[0], b6[1]) // 6, 7
+
+
+	slice = append(slice, byte(0)) // 8
+	slice = append(slice, byte(0)) // 9
+
+	b10 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b10, uint16(0))
+	slice = append(slice, b10[0], b10[1]) // 10, 11
+
+	b12 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b12, uint16(0))
+	slice = append(slice, b12[0], b12[1]) // 12, 13
+
+	return slice
+}
+
 
 type TelemetryCombinedStatusRapidInfo struct {
 	MessageType string `json:"MessageType"`

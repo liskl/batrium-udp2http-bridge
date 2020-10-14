@@ -21,6 +21,14 @@ build: clean format
 	 -t "${REGISTRY}/${APP}:${TAG}" . ; \
 	docker push "${REGISTRY}/${APP}:${TAG}";
 
+build-client: clean format
+	docker build \
+	 --build-arg "BUILD_TIME=${BUILD_TIME}" \
+	 --build-arg "COMMIT=${COMMIT}" \
+	 --build-arg "RELEASE=${RELEASE}" \
+	 -t "${REGISTRY}/${APP}-client:${TAG}" -f Dockerfile.client . ; \
+	docker push "${REGISTRY}/${APP}-client:${TAG}";
+
 run: build
 	docker pull "${REGISTRY}/${APP}:${TAG}";
 	docker run --rm --name "${APP}" -it \

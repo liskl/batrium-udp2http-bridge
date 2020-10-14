@@ -1,17 +1,20 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
+
 	log "github.com/sirupsen/logrus"
+	"html/template"
 	"math"
 	"net"
 	"net/http"
-	//"bytes"
+	"strconv"
 	//"encoding/gob"
 	//"strings"
 )
@@ -27,6 +30,10 @@ const display = true
 
 var x5732 string
 var x415A string
+
+var NodeIDList [230]int
+var NodeInfoList [230]string
+
 var x4232 string // this is need an array one for each longmon
 var x3E32 string
 var x3F33 string
@@ -52,6 +59,8 @@ var x5831 string
 var x6831 string
 var x5431 string
 
+var homepageTpl *template.Template
+
 func Float64frombytes(bytes []byte) float64 {
 	bits := binary.LittleEndian.Uint64(bytes)
 	float := math.Float64frombits(bits)
@@ -73,7 +82,53 @@ func itob(i int) bool {
 }
 
 func YourHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
+	//push(w, "/static/style.css")
+	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	var a batrium.IndividualCellMonitorFullInfo
+
+	page_contents := "<html><head></head><body><ul>\n" +
+		"<li><a href=\"/0x5732\">SystemDiscoveryInfo</a></li>\n" +
+		"<li><a href=\"/0x415A\">IndividualCellMonitorBasicStatus</a></li>\n" +
+		"<li><a href=\"/0x4232\">IndividualCellMonitorFullInfo</a></li>\n" +
+		"<ul>\n"
+
+	for _, NodeInfo := range NodeInfoList {
+		json.Unmarshal([]byte(NodeInfo), &a)
+
+		if len(NodeInfo) >= 1 {
+			entry := string(fmt.Sprintf("<li><a href='/0x4232/%d'>node %d</a></li>\n", a.NodeID, a.NodeID))
+			page_contents += entry
+		}
+	}
+
+	page_contents += "</ul>\n" +
+		"<li><a href=\"/0x3E32\">TelemetryCombinedStatusRapidInfo</a></li>\n" +
+		"<li><a href=\"/0x3F33\">TelemetryCombinedStatusFastInfo</a></li>\n" +
+		"<li><a href=\"/0x4732\">TelemetryLogicControlStatusInfo</a></li>\n" +
+		"<li><a href=\"/0x4932\">TelemetryRemoteStatusInfo</a></li>\n" +
+		"<li><a href=\"/0x6131\">TelemetryCommunicationStatusInfo</a></li>\n" +
+		"<li><a href=\"/0x4032\">TelemetryCombinedStatusSlowInfo</a></li>\n" +
+		"<li><a href=\"/0x5432\">TelemetryDailySessionInfo</a></li>\n" +
+		"<li><a href=\"/0x7857\">TelemetryShuntMetricsInfo</a></li>\n" +
+		"<li><a href=\"/0x5632\">TelemetryLifetimeMetricsInfo</a></li>\n" +
+		"<li><a href=\"/0x4A35\">HardwareSystemSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x4B35\">HardwareCellGroupSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x4C33\">HardwareShuntSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x4D33\">HardwareExpansionSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x5334\">HardwareIntegrationSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x4F33\">ControlLogicCriticalSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x5033\">ControlLogicChargeSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x5158\">ControlLogicDischargeSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x5258\">ControlLogicThermalSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x4E58\">ControlLogicRemoteSetupConfigurationInfo</a></li>\n" +
+		"<li><a href=\"/0x5831\">TelemetryDailySessionHistoryReply</a></li>\n" +
+		"<li><a href=\"/0x6831\">TelemetryQuickSessionHistoryReply</a></li>\n" +
+		"<li><a href=\"/0x5431\">TelemetrySessionMetrics</a></li>\n" +
+		"</ul></body></html>\n"
+
+	w.Write([]byte(page_contents))
+	//render(w, r, homepageTpl, "index.html", "<html></html>")
 	// SystemDiscoveryInfo, 0x5732
 }
 
@@ -88,7 +143,10 @@ func YourHandler0x415A(w http.ResponseWriter, r *http.Request) {
 }
 
 func YourHandler0x4232(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(x4232))
+	vars := mux.Vars(r)
+	node_id, _ := strconv.Atoi(vars["id"])
+
+	w.Write([]byte(NodeInfoList[node_id]))
 	// IndividualCellMonitorFullInfo, 0x4232
 }
 
@@ -183,6 +241,9 @@ func YourHandler0x5431(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	homepageTpl = template.Must(template.ParseFiles("templates/index.html"))
+
 	fmt.Printf("Starting: batrium-udp2http-bridge.\n")
 	log.SetLevel(log.InfoLevel)
 
@@ -193,6 +254,7 @@ func main() {
 	r.HandleFunc("/0x5732", YourHandler0x5732)
 	r.HandleFunc("/0x415A", YourHandler0x415A)
 	r.HandleFunc("/0x4232", YourHandler0x4232)
+	r.HandleFunc("/0x4232/{id:[0-9]+}", YourHandler0x4232)
 	r.HandleFunc("/0x3E32", YourHandler0x3E32)
 	r.HandleFunc("/0x3F33", YourHandler0x3F33)
 	r.HandleFunc("/0x4732", YourHandler0x4732)
@@ -215,6 +277,7 @@ func main() {
 	r.HandleFunc("/0x5831", YourHandler0x5831)
 	r.HandleFunc("/0x6831", YourHandler0x6831)
 	r.HandleFunc("/0x5431", YourHandler0x5431)
+	//r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	addr := net.UDPAddr{Port: UDPport, IP: net.ParseIP(UDPhost)}
 
@@ -344,6 +407,8 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 		}
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4232 = string(jsonOutput)
+		NodeIDList[int(uint8(bytearray[8]))] = int(uint8(bytearray[8]))
+		NodeInfoList[int(uint8(bytearray[8]))] = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x3E32": // Telemetry - Combined Status Rapid Info, [Json]
@@ -1143,5 +1208,25 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 		//fmt.Printf("MessageType: %s\n", a.MessageType)
 		//fmt.Printf("Bytes: %q\n", string(bytearray[:cc]))
 		return string("{\"status\",\"Unknown\"}"), nil
+	}
+}
+
+// Render a template, or server error.
+func render(w http.ResponseWriter, r *http.Request, tpl *template.Template, name string, data interface{}) {
+	buf := new(bytes.Buffer)
+	if err := tpl.ExecuteTemplate(buf, name+".html", data); err != nil {
+		fmt.Printf("\nRender Error: %v\n", err)
+		return
+	}
+	w.Write(buf.Bytes())
+}
+
+// Push the given resource to the client.
+func push(w http.ResponseWriter, resource string) {
+	pusher, ok := w.(http.Pusher)
+	if ok {
+		if err := pusher.Push(resource, nil); err == nil {
+			return
+		}
 	}
 }
