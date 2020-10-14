@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
-
 	log "github.com/sirupsen/logrus"
 	"html/template"
 	"math"
@@ -16,8 +15,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	//"encoding/gob"
-	//"strings"
 )
 
 // UDPport port we listen on for UDP broadcasts: defaults to 18542"
@@ -65,31 +62,24 @@ var homepageTpl *template.Template
 func init() {
 	// Log as JSON instead of the default ASCII formatter.
 	//log.SetFormatter(&log.JSONFormatter{})
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		FullTimestamp: true,
+	})
+
+	// add method to the log line
+	log.SetReportCaller(true)
 
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
 	log.SetOutput(os.Stdout)
 
 	// Only log the info severity or above.
+	//log.SetLevel(log.WarnLevel)
+	//log.SetLevel(log.InfoLevel)
 	log.SetLevel(log.InfoLevel)
-}
+	//log.SetLevel(log.TraceLevel)
 
-// Float64frombytes converts []bytes form float64 to float
-func Float64frombytes(bytes []byte) float64 {
-	bits := binary.LittleEndian.Uint64(bytes)
-	float := math.Float64frombits(bits)
-	//log.Error(fmt.Sprintf("bits(%v), float(%.2f)", bits, math.Round(float*100)/100))
-
-	return float
-}
-
-// Float64bytes Converts Float64 to []bytes of size 8
-func Float64bytes(float float64) []byte {
-	bits := math.Float64bits(float)
-	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, bits)
-	// log.Error(fmt.Sprintf("bits(%v)", bits))
-	return bytes
 }
 
 // Float32frombytes converts []bytes form float32 to float
@@ -114,62 +104,58 @@ func itob(i int) bool {
 	return bool(false)
 }
 
+type Route struct {
+	Text string
+	Url  string
+	Done bool
+}
+
+type PageData struct {
+	PageTitle string
+	Routes    []Route
+}
+
 func yourHandler(w http.ResponseWriter, r *http.Request) {
 	//push(w, "/static/style.css")
-	//w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	var a batrium.IndividualCellMonitorFullInfo
 
-	pageContents := "<html><head></head><body><ul>\n" +
-		"<li><a href=\"/0x5732\">SystemDiscoveryInfo</a></li>\n" +
-		"<li><a href=\"/0x415A\">IndividualCellMonitorBasicStatus</a></li>\n" +
-		"<li>IndividualCellMonitorFullInfo</li>\n" +
-		"<ul>\n"
+	data := PageData{
+		PageTitle: "Batrium udp2http bridge",
+		Routes:    []Route{},
+	}
 
 	for _, NodeInfo := range nodeInfoList {
 		json.Unmarshal([]byte(NodeInfo), &a)
 
 		if len(NodeInfo) >= 1 {
-			entry := string(fmt.Sprintf("<li><a href='/0x4232/%d'>node %d</a></li>\n", a.NodeID, a.NodeID))
-			pageContents += entry
+			var route = Route{
+				Url:  string(fmt.Sprintf("/0x4232/%d", a.NodeID)),
+				Text: string(fmt.Sprintf("Node %d", a.NodeID)),
+				Done: false,
+			}
+
+			data.Routes = append(data.Routes, route)
 		}
 	}
 
-	pageContents += "</ul>\n" +
-		"<li><a href=\"/0x3E32\">TelemetryCombinedStatusRapidInfo</a></li>\n" +
-		"<li><a href=\"/0x3F33\">TelemetryCombinedStatusFastInfo</a></li>\n" +
-		"<li><a href=\"/0x4732\">TelemetryLogicControlStatusInfo</a></li>\n" +
-		"<li><a href=\"/0x4932\">TelemetryRemoteStatusInfo</a></li>\n" +
-		"<li><a href=\"/0x6131\">TelemetryCommunicationStatusInfo</a></li>\n" +
-		"<li><a href=\"/0x4032\">TelemetryCombinedStatusSlowInfo</a></li>\n" +
-		"<li><a href=\"/0x5432\">TelemetryDailySessionInfo</a></li>\n" +
-		"<li><a href=\"/0x7857\">TelemetryShuntMetricsInfo</a></li>\n" +
-		"<li><a href=\"/0x5632\">TelemetryLifetimeMetricsInfo</a></li>\n" +
-		"<li><a href=\"/0x4A35\">HardwareSystemSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x4B35\">HardwareCellGroupSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x4C33\">HardwareShuntSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x4D33\">HardwareExpansionSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x5334\">HardwareIntegrationSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x4F33\">ControlLogicCriticalSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x5033\">ControlLogicChargeSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x5158\">ControlLogicDischargeSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x5258\">ControlLogicThermalSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x4E58\">ControlLogicRemoteSetupConfigurationInfo</a></li>\n" +
-		"<li><a href=\"/0x5831\">TelemetryDailySessionHistoryReply</a></li>\n" +
-		"<li><a href=\"/0x6831\">TelemetryQuickSessionHistoryReply</a></li>\n" +
-		"<li><a href=\"/0x5431\">TelemetrySessionMetrics</a></li>\n" +
-		"</ul></body></html>\n"
+	tmpl := template.Must(template.ParseFiles("templates/index.html"))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
-	w.Write([]byte(pageContents))
+	tmpl.Execute(w, data)
+
+	//w.Write([]byte(pageContents))
 	//render(w, r, homepageTpl, "index.html", "<html></html>")
 }
 
 func yourHandler0x5732(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5732))
 	// SystemDiscoveryInfo, 0x5732
 }
 
 func yourHandler0x415A(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x415A))
 	// IndividualCellMonitorBasicStatus, 0x415A
 }
@@ -178,97 +164,120 @@ func yourHandler0x4232(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	nodeID, _ := strconv.Atoi(vars["id"])
 
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(nodeInfoList[nodeID]))
 	// IndividualCellMonitorFullInfo, 0x4232
 }
 
 func yourHandler0x3E32(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x3E32))
 	// TelemetryCombinedStatusRapidInfo, 0x3E32
 }
 
 func yourHandler0x3F33(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x3F33))
 	// TelemetryCombinedStatusFastInfo, 0x3F33
 }
 
 func yourHandler0x4732(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4732))
 }
 
 func yourHandler0x4932(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4932))
 }
 
 func yourHandler0x6131(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x6131))
 }
 
 func yourHandler0x4032(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4032))
 }
 
 func yourHandler0x5432(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5432))
 }
 
 func yourHandler0x7857(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x7857))
 }
 
 func yourHandler0x5632(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5632))
 }
 
 func yourHandler0x4A35(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4A35))
 }
 
 func yourHandler0x4B35(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4B35))
 }
 
 func yourHandler0x4C33(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4C33))
 }
 
 func yourHandler0x4D33(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4D33))
 }
 
 func yourHandler0x5334(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5334))
 }
 
 func yourHandler0x4F33(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4F33))
 }
 
 func yourHandler0x5033(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5033))
 }
 
 func yourHandler0x5158(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5158))
 }
 
 func yourHandler0x5258(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5258))
 }
 
 func yourHandler0x4E58(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x4E58))
 }
 
 func yourHandler0x5831(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5831))
 }
 
 func yourHandler0x6831(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x6831))
 }
 
 func yourHandler0x5431(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5431))
 }
 
@@ -307,7 +316,7 @@ func main() {
 	r.HandleFunc("/0x5831", yourHandler0x5831)
 	r.HandleFunc("/0x6831", yourHandler0x6831)
 	r.HandleFunc("/0x5431", yourHandler0x5431)
-	//r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	addr := net.UDPAddr{Port: UDPport, IP: net.ParseIP(UDPhost)}
 
@@ -342,12 +351,12 @@ func main() {
 					// Unmarshal or Decode the JSON to the interface.
 					json.Unmarshal([]byte(response), &results)
 
-					log.WithFields(log.Fields{
-						"MsgType":  fmt.Sprintf("%s", a.MessageType),
-						"SystemID": fmt.Sprintf("%s", a.SystemID),
-						"HubID":    fmt.Sprintf("%s", a.HubID),
-						"response": response,
-					}).Info("received: UDP Broadcast")
+					//log.WithFields(log.Fields{
+					//	"MsgType":  fmt.Sprintf("%s", a.MessageType),
+					//	"SystemID": fmt.Sprintf("%s", a.SystemID),
+					//	"HubID":    fmt.Sprintf("%s", a.HubID),
+					//"response": response,
+					//}).Trace("received: UDP Broadcast")
 				}
 				//fmt.Printf("Out of infinite loop\n")
 			}
@@ -357,14 +366,101 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
+func PowerRateStateConversion(state uint8) string {
+	var result string
+
+	switch state {
+	case 0: // Off
+		result = "Off"
+	case 2: // Limited
+		result = "Limited"
+	case 4: // Normal
+		result = "Normal"
+	default:
+		result = "Error"
+	}
+
+	return string(result)
+}
+
+func SystemOpStatusConversion(state uint8) string {
+	var result string
+
+	switch state {
+	case 0: // Timeout
+		result = "Timeout"
+	case 1: // Idle
+		result = "Idle"
+	case 2: // Charging
+		result = "Charging"
+	case 3: // Discharging
+		result = "Discharging"
+	case 4: // Full
+		result = "Full"
+	case 5: // Empty
+		result = "Empty"
+	case 6: // Simulator
+		result = "Simulator"
+	case 7: // CriticalPending
+		result = "CriticalPending"
+	case 8: // CriticalOffline
+		result = "CriticalOffline"
+	case 9: // MqttOffline
+		result = "MqttOffline"
+	case 10: // AuthSetup
+		result = "AuthSetup"
+	default: // Error
+		result = "Error"
+	}
+
+	return string(result)
+}
+
+func NodeStatusConversion(state uint8) string {
+	var result string
+	switch state {
+	case 0: // None
+		result = "None"
+	case 1: // HighVolt
+		result = "HighVolt"
+	case 2: // HighTemp
+		result = "HighTemp"
+	case 3: // Ok
+		result = "Ok"
+	case 4: // Timeout
+		result = "Timeout"
+	case 5: // LowVolt
+		result = "LowVolt"
+	case 6: // Disabled
+		result = "Disabled"
+	case 7: // InBypass
+		result = "InBypass"
+	case 8: // InitialBypass
+		result = "InitialBypass"
+	case 9: // FinalBypass
+		result = "FinalBypass"
+	case 10: // MissingSetup
+		result = "MissingSetup"
+	case 11: // NoConfig
+		result = "NoConfig"
+	case 12: // CellOutLimits
+		result = "CellOutLimits"
+	case 255: // Undefined
+		result = "Undefined"
+	default: // Error
+		result = "Error"
+	}
+
+	return string(result)
+}
+
 func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int) (string, error) {
 
 	switch a.MessageType {
 	case "0x5732": // System Discovery Info
-		//fmt.Println("SystemDiscoveryInfo: OK.")
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:50]))
 
 		b := bytes.Trim(bytearray[8:8+8], "\x00")
-
 		c := &batrium.SystemDiscoveryInfo{
 			MessageType:             fmt.Sprintf("%s", a.MessageType),
 			SystemCode:              fmt.Sprintf("%s", b),
@@ -381,37 +477,66 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			MinCellVolt:             binary.LittleEndian.Uint16(bytearray[31 : 31+2]),
 			MaxCellVolt:             binary.LittleEndian.Uint16(bytearray[33 : 33+2]),
 			AvgCellVolt:             binary.LittleEndian.Uint16(bytearray[35 : 35+2]),
-			MinCellTemp:             uint8(bytearray[37]),
+			MinCellTemp:             uint8(bytearray[37]) - 40,
 			NumOfActiveCellmons:     uint8(bytearray[38]),
 			CMUPortRxUSN:            uint8(bytearray[39]),
 			CMUPollerMode:           uint8(bytearray[40]),
-			ShuntSoC:                uint8(bytearray[41]),
+			ShuntSoC:                uint8(bytearray[41]) / 2,
 			ShuntVoltage:            binary.LittleEndian.Uint16(bytearray[42 : 42+2]),
 			ShuntCurrent:            Float32frombytes(bytearray[44 : 44+4]),
 			ShuntStatus:             uint8(bytearray[48]),
 			ShuntRXTicks:            uint8(bytearray[49]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
+
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5732 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x415A": // Individual cell monitor Basic Status (subset for up to 16)
-		//fmt.Println("IndividualCellMonitorBasicStatus: OK.")
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:177]))
 		c := &batrium.IndividualCellMonitorBasicStatus{
 			MessageType: fmt.Sprintf("%s", a.MessageType),
 			SystemID:    fmt.Sprintf("%s", a.SystemID),
 			HubID:       fmt.Sprintf("%s", a.HubID),
 
-			CmuPort:     uint8(bytearray[12]),
-			Records:     uint8(bytearray[17]),
-			FirstNodeID: uint8(bytearray[14]),
-			LastNodeID:  uint8(bytearray[15]),
+			CmuPort:     uint8(bytearray[8]),
+			Records:     uint8(bytearray[9]),
+			FirstNodeID: uint8(bytearray[10]),
+			LastNodeID:  uint8(bytearray[11]),
 		}
+
+		idx := 12 // start of index for CellMonList
+
+		// for each node in the list generate the CellMonList Entry
+		for node := uint8(bytearray[10]); node <= uint8(bytearray[9]); node++ {
+
+			// this is a logical decision made in the protocol (subset for up to 16)
+			if node > 16 {
+				break //loop is terminated if node > 16
+			}
+			e := batrium.IndividualCellMonitorBasicStatusNode{
+				NodeID:         uint8(bytearray[idx]),
+				USN:            uint8(bytearray[idx+1]),
+				MinCellVoltage: binary.LittleEndian.Uint16(bytearray[idx+2 : idx+2+2]), // 0 to 6,500 mV, 1mV / bit and nil offset
+				MaxCellVoltage: binary.LittleEndian.Uint16(bytearray[idx+4 : idx+4+2]), // 0 to 6,500 mV, 1mV / bit and nil offset
+				MaxCellTemp:    uint8(bytearray[idx+6]) - 40,                           // -40ºC to 125ºC, 1ºC/bit and 40ºC offset
+				BypassTemp:     uint8(bytearray[idx+7]) - 40,                           // -40ºC to 125ºC, 1ºC/bit and 40ºC offset
+				BypassAmp:      binary.LittleEndian.Uint16(bytearray[idx+8 : idx+8+2]), // 0 to 2,500 mA, 1mA / bit and nil offset
+				NodeStatus:     uint8(bytearray[idx+10]),                               // see function NodeStatusConversion(state uint8)
+			}
+
+			c.AddNode(e)
+			idx += 11
+		}
+
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x415A = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4232": // Individual cell monitor Full Info (node specific), [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:52]))
 		c := &batrium.IndividualCellMonitorFullInfo{
 			MessageType:             fmt.Sprintf("%s", a.MessageType),
 			SystemID:                fmt.Sprintf("%s", a.SystemID),
@@ -442,16 +567,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			BypassSessionmAh:        uint8(bytearray[47]),
 			RepeatCellV:             uint8(bytearray[51]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
-		//nodeIDList[int(uint8(bytearray[8]))] = int(uint8(bytearray[8]))
 		nodeInfoList[int(uint8(bytearray[8]))] = string(jsonOutput)
-
-		//k, found := Find(hubIDList, "B")
-
 		return string(jsonOutput), nil
 
 	case "0x3E32": // Telemetry - Combined Status Rapid Info, [Json]
-		log.Error(bytearray)
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:50]))
 		c := &batrium.TelemetryCombinedStatusRapidInfo{
 			MessageType:                     fmt.Sprintf("%s", a.MessageType),
 			SystemID:                        fmt.Sprintf("%s", a.SystemID),
@@ -487,11 +609,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			ShuntAmp:                        Float32frombytes(bytearray[42 : 42+4]),
 			ShuntPower:                      Float32frombytes(bytearray[46 : 46+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x3E32 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x3F33": // Telemetry - Combined Status Fast Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:80]))
 		c := &batrium.TelemetryCombinedStatusFastInfo{
 			MessageType:                           fmt.Sprintf("%s", a.MessageType),
 			SystemID:                              fmt.Sprintf("%s", a.SystemID),
@@ -544,15 +668,15 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			MinBypassSessionReference:             uint8(bytearray[75]),
 			MaxBypassSessionReference:             uint8(bytearray[76]),
 			RebalanceBypassExtra:                  bool(itob(int(bytearray[77]))),
-
-			//RebalanceBypassExtra: bool(bytearray[77]),
-			//RepeatCellVoltCounter: uint16(bytearray[78:]),
+			RepeatCellVoltCounter:                 binary.LittleEndian.Uint16(bytearray[78:80]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x3F33 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4732": // Telemetry - Logic Control Status Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:79]))
 		c := &batrium.TelemetryLogicControlStatusInfo{
 			MessageType:                         fmt.Sprintf("%s", a.MessageType),
 			SystemID:                            fmt.Sprintf("%s", a.SystemID),
@@ -629,11 +753,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			ThermalCellsInTempHigh:              bool(itob(int(bytearray[77]))),
 			ChargingHasBypassSessionLow:         bool(itob(int(bytearray[78]))),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4732 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4932": // Telemetry - Remote Status Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:62]))
 		c := &batrium.TelemetryRemoteStatusInfo{
 			MessageType:            fmt.Sprintf("%s", a.MessageType),
 			SystemID:               fmt.Sprintf("%s", a.SystemID),
@@ -663,11 +789,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			DischargeActualFlags2:  binary.LittleEndian.Uint32(bytearray[54 : 54+4]),
 			DischargeActualRxTime:  binary.LittleEndian.Uint32(bytearray[58 : 58+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4932 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x6131": // Telemetry - Communication Status Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:33]))
 		c := &batrium.TelemetryCommunicationStatusInfo{
 			MessageType:           fmt.Sprintf("%s", a.MessageType),
 			SystemID:              fmt.Sprintf("%s", a.SystemID),
@@ -694,11 +822,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			CellmonCMUTxUSN:       uint8(bytearray[31]),
 			CellmonCMURxUSN:       uint8(bytearray[32]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x6131 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4032": // Telemetry - Combined Status Slow Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:66]))
 		c := &batrium.TelemetryCombinedStatusSlowInfo{
 			MessageType:                         fmt.Sprintf("%s", a.MessageType),
 			SystemID:                            fmt.Sprintf("%s", a.SystemID),
@@ -733,11 +863,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			//ShuntNettAccumulatedCount: int64(bytearray[54:54+8]),
 			ShuntNominalCapacityToEmpty: Float32frombytes(bytearray[62 : 62+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4032 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5432": // Telemetry - Daily Session Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:69]))
 		c := &batrium.TelemetryDailySessionInfo{
 			MessageType:            fmt.Sprintf("%s", a.MessageType),
 			SystemID:               fmt.Sprintf("%s", a.SystemID),
@@ -778,11 +910,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			CumulativeShuntWattHourCharge:                           Float32frombytes(bytearray[61 : 61+4]),
 			CumulativeShuntWattHourDischarge:                        Float32frombytes(bytearray[65 : 65+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5432 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x7857": // Telemetry - Shunt Metric Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:76]))
 		c := &batrium.TelemetryShuntMetricsInfo{
 			MessageType:                       fmt.Sprintf("%s", a.MessageType),
 			SystemID:                          fmt.Sprintf("%s", a.SystemID),
@@ -807,11 +941,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			//PNS1 60 string8
 			//PNS2 68 string8
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x7857 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5632": // Telemetry - Lifetime Metric Info, [Json]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:115]))
 		c := &batrium.TelemetryLifetimeMetricsInfo{
 			MessageType:                         fmt.Sprintf("%s", a.MessageType),
 			SystemID:                            fmt.Sprintf("%s", a.SystemID),
@@ -845,18 +981,20 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			MostRecentTimeWizardSetup:           binary.LittleEndian.Uint32(bytearray[107 : 107+4]),
 			MostRecentTimeRebalancingExtra:      binary.LittleEndian.Uint32(bytearray[111 : 111+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5632 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4A35": // Hardware - System setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:76]))
 		c := &batrium.HardwareSystemSetupConfigurationInfo{
 			MessageType:          fmt.Sprintf("%s", a.MessageType),
 			SystemID:             fmt.Sprintf("%s", a.SystemID),
 			HubID:                fmt.Sprintf("%s", a.HubID),
-			SystemCode:           fmt.Sprintf("%s", bytearray[10:10+8]),
-			SystemName:           fmt.Sprintf("%s", bytearray[18:18+20]),
-			AssetCode:            fmt.Sprintf("%s", bytearray[36:36+20]),
+			SystemCode:           fmt.Sprintf("%s", bytes.Trim(bytearray[10:10+8], "\x00")),
+			SystemName:           fmt.Sprintf("%s", bytes.Trim(bytearray[18:18+20], "\x00")),
+			AssetCode:            fmt.Sprintf("%s", bytes.Trim(bytearray[36:36+20], "\x00")),
 			AllowTechAuthority:   bool(itob(int(bytearray[58]))),
 			AllowQuickSession:    bool(itob(int(bytearray[59]))),
 			QuickSessionlnterval: binary.LittleEndian.Uint32(bytearray[60 : 60+4]),
@@ -867,11 +1005,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			ShowScheduler:        bool(itob(int(bytearray[74]))),
 			ShowStripCycle:       bool(itob(int(bytearray[75]))),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4A35 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4B35": // Hardware - Cell Group setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:53]))
 		c := &batrium.HardwareCellGroupSetupConfigurationInfo{
 			SetupVersion:                  uint8(bytearray[8]),
 			BatteryTypeID:                 uint8(bytearray[9]),
@@ -903,11 +1043,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			BypassStableInterval:          binary.LittleEndian.Uint16(bytearray[49 : 49+2]),
 			BypassExtraAmpLimit:           binary.LittleEndian.Uint16(bytearray[51 : 51+2]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4B35 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4C33": // Hardware - Shunt setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:60]))
 		c := &batrium.HardwareShuntSetupConfigurationInfo{
 			ShuntTypeID:                  uint8(bytearray[8]),
 			VoltageScale:                 binary.LittleEndian.Uint16(bytearray[9 : 9+2]),
@@ -934,11 +1076,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			MaxAmpCharge:                 binary.LittleEndian.Uint16(bytearray[56 : 56+2]),
 			MaxAmpDischg:                 binary.LittleEndian.Uint16(bytearray[58 : 58+2]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4C33 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4D33": // Hardware - Expansion setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:32]))
 		c := &batrium.HardwareExpansionSetupConfigurationInfo{
 			SetupVersion:          uint8(bytearray[8]),
 			ExtensionTemplate:     uint8(bytearray[9]),
@@ -963,11 +1107,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			CustomFeature1:        binary.LittleEndian.Uint16(bytearray[28 : 28+2]),
 			CustomFeature2:        binary.LittleEndian.Uint16(bytearray[30 : 30+2]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4D33 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5334": // Hardware - Integration setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:26]))
 		c := &batrium.HardwareIntegrationSetupConfigurationInfo{
 			SetupVersion:        uint8(bytearray[8]),
 			USBTXBroadcast:      bool(itob(int(bytearray[9]))),
@@ -979,11 +1125,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			CanbusBaseAddress:   binary.LittleEndian.Uint32(bytearray[13 : 13+4]),
 			CanbusGroupAddress:  binary.LittleEndian.Uint32(bytearray[13 : 13+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5334 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4F33": // Control logic – Critical setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:75]))
 		c := &batrium.ControlLogicCriticalSetupConfigurationInfo{
 			MessageType:                   fmt.Sprintf("%s", a.MessageType),
 			SystemID:                      fmt.Sprintf("%s", a.SystemID),
@@ -1024,11 +1172,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			TimeOutManualOverride:         binary.LittleEndian.Uint32(bytearray[58 : 58+4]),
 			SetupVersion:                  uint8(bytearray[62]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4F33 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5033": // Control logic - Charge setup configuration Info, [WIP]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:60]))
 		c := &batrium.ControlLogicChargeSetupConfigurationInfo{
 			MessageType:               fmt.Sprintf("%s", a.MessageType),
 			SystemID:                  fmt.Sprintf("%s", a.SystemID),
@@ -1067,11 +1217,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			BypassSessionLow:          Float32frombytes(bytearray[55 : 55+4]),
 			AllowBypassSession:        bool(itob(int(bytearray[59]))),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5033 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5158": // Control logic - Discharge setup configuration Info, [WIP]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:49]))
 		c := &batrium.ControlLogicDischargeSetupConfigurationInfo{
 			MessageType:              fmt.Sprintf("%s", a.MessageType),
 			SystemID:                 fmt.Sprintf("%s", a.SystemID),
@@ -1104,11 +1256,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			StartTimerInterval:       binary.LittleEndian.Uint32(bytearray[44 : 44+4]),
 			SetupVersion:             uint8(bytearray[48]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5158 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5258": // Control logic - Thermal setup configuration Info, [WIP]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:36]))
 		c := &batrium.ControlLogicThermalSetupConfigurationInfo{
 			MessageType:            fmt.Sprintf("%s", a.MessageType),
 			SystemID:               fmt.Sprintf("%s", a.SystemID),
@@ -1130,11 +1284,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			StartTimerIntervalCool: binary.LittleEndian.Uint32(bytearray[31 : 31+4]),
 			SetupVersion:           uint8(bytearray[35]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5258 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x4E58": // Control logic - Remote setup configuration Info
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:45]))
 		c := &batrium.ControlLogicRemoteSetupConfigurationInfo{
 			MessageType:                  fmt.Sprintf("%s", "0x4E58"),
 			ChargeNormalVolt:             binary.LittleEndian.Uint16(bytearray[8 : 8+2]),
@@ -1157,11 +1313,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			DischargeScale16VA:           binary.LittleEndian.Uint16(bytearray[42 : 42+2]),
 			SetupVersion:                 uint8(bytearray[44]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x4E58 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5831": // Telemetry - Daily Session History, [WIP]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:69]))
 		c := &batrium.TelemetryDailySessionHistoryReply{
 			RecordIndex:            binary.LittleEndian.Uint16(bytearray[8 : 8+2]),
 			RecordTime:             binary.LittleEndian.Uint32(bytearray[10 : 10+4]),
@@ -1198,11 +1356,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			CumulativeShuntAmpHourCharge:                            Float32frombytes(bytearray[52 : 52+4]),
 			CumulativeShuntAmpHourDischarge:                         Float32frombytes(bytearray[56 : 56+4]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5831 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x6831": // Telemetry - Quick Session History, [WIP]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:32]))
 		c := &batrium.TelemetryQuickSessionHistoryReply{
 			MessageType:           fmt.Sprintf("%s", a.MessageType),
 			SystemID:              fmt.Sprintf("%s", a.SystemID),
@@ -1220,11 +1380,13 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			ShuntCurrent:          Float32frombytes(bytearray[27 : 27+4]),
 			NumberOfCellsInBypass: uint8(bytearray[31]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x6831 = string(jsonOutput)
 		return string(jsonOutput), nil
 
 	case "0x5431": // Telemetry - Session Metrics, [WIP]
+		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:25]))
 		c := &batrium.TelemetrySessionMetrics{
 			MessageType:                 fmt.Sprintf("%s", a.MessageType),
 			SystemID:                    fmt.Sprintf("%s", a.SystemID),
@@ -1237,6 +1399,7 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			DailysessionNumberOfRecords: binary.LittleEndian.Uint16(bytearray[21 : 21+2]),
 			DailysessionRecordCapacity:  binary.LittleEndian.Uint16(bytearray[23 : 23+2]),
 		}
+		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5431 = string(jsonOutput)
 		return string(jsonOutput), nil

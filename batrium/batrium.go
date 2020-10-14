@@ -1,7 +1,7 @@
 package batrium
 
 import (
-//"encoding/json"
+	//"encoding/json"
 	"encoding/binary"
 )
 
@@ -41,6 +41,17 @@ type SystemDiscoveryInfo struct { // 0x5732 DONE
 	ShuntRXTicks            uint8   `json:"ShuntRXTicks"`
 }
 
+type IndividualCellMonitorBasicStatusNode struct {
+	NodeID         uint8  `json:"NodeID"`
+	USN            uint8  `json:"USN"`
+	MinCellVoltage uint16 `json:"MinCellVoltage"`
+	MaxCellVoltage uint16 `json:"MaxCellVoltage"`
+	MaxCellTemp    uint8  `json:"MaxCellTemp"`
+	BypassTemp     uint8  `json:"BypassTemp"`
+	BypassAmp      uint16 `json:"BypassAmp"`
+	NodeStatus     uint8  `json:"NodeStatus"`
+}
+
 // IndividualCellMonitorBasicStatus is the MessageType for 0x415A
 type IndividualCellMonitorBasicStatus struct {
 	MessageType string `json:"MessageType"`
@@ -51,6 +62,13 @@ type IndividualCellMonitorBasicStatus struct {
 	Records     uint8 `json:"Records"`
 	FirstNodeID uint8 `json:"FirstNodeID"`
 	LastNodeID  uint8 `json:"LastNodeID"`
+
+	CellMonList []IndividualCellMonitorBasicStatusNode `json:CellMonList`
+}
+
+func (icmbs *IndividualCellMonitorBasicStatus) AddNode(node IndividualCellMonitorBasicStatusNode) []IndividualCellMonitorBasicStatusNode {
+	icmbs.CellMonList = append(icmbs.CellMonList, node)
+	return icmbs.CellMonList
 }
 
 // IndividualCellMonitorFullInfo is the MessageType for 0x4232
@@ -110,7 +128,6 @@ func (icmfi IndividualCellMonitorFullInfo) getData() []byte {
 	b6 := make([]byte, 2)
 	binary.LittleEndian.PutUint16(b6, uint16(0))
 	slice = append(slice, b6[0], b6[1]) // 6, 7
-
 
 	slice = append(slice, byte(0)) // 8
 	slice = append(slice, byte(0)) // 9
@@ -685,9 +702,9 @@ type ControlLogicThermalSetupConfigurationInfo struct {
 // ControlLogicRemoteSetupConfigurationInfo is the MessageType for 0x4E58
 // Not Implemented
 type ControlLogicRemoteSetupConfigurationInfo struct {
-	MessageType                  string `json:"MessageType"`
-	SystemID                     uint16 `json:"SystemID"`
-	HubID                        uint16 `json:"HubID"`
+	MessageType string `json:"MessageType"`
+	SystemID    uint16 `json:"SystemID"`
+	HubID       uint16 `json:"HubID"`
 
 	ChargeNormalVolt             uint16 `json:"ChargeNormalVolt"`
 	ChargeNormalAmp              uint16 `json:"ChargeNormalAmp"`
@@ -757,9 +774,9 @@ type TelemetryDailySessionInfo struct {
 // TelemetryDailySessionHistoryReply is the MessageType for 0x5831
 // Not Implemented
 type TelemetryDailySessionHistoryReply struct {
-	MessageType                                             string `json:"MessageType"`
-	SystemID                                                string `json:"SystemID"`
-	HubID                                                   string `json:"HubID"`
+	MessageType string `json:"MessageType"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	RecordIndex                                             uint16
 	RecordTime                                              uint32
