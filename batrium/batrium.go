@@ -707,6 +707,7 @@ type ControlLogicRemoteSetupConfigurationInfo struct {
 	MessageType                  string `json:"MessageType"`
 	SystemID                     uint16 `json:"SystemID"`
 	HubID                        uint16 `json:"HubID"`
+
 	ChargeNormalVolt             uint16 `json:"ChargeNormalVolt"`
 	ChargeNormalAmp              uint16 `json:"ChargeNormalAmp"`
 	ChargeNormalVA               uint16 `json:"ChargeNormalVA"`
@@ -775,9 +776,9 @@ type TelemetryDailySessionInfo struct {
 // TelemetryDailySessionHistoryReply is the MessageType for 0x5831
 // Not Implemented
 type TelemetryDailySessionHistoryReply struct {
-	MessageType string `json:"MessageType"`
-	SystemID    string `json:"SystemID"`
-	HubID       string `json:"HubID"`
+	MessageType                                             string `json:"MessageType"`
+	SystemID                                                string `json:"SystemID"`
+	HubID                                                   string `json:"HubID"`
 
 	RecordIndex                                             uint16
 	RecordTime                                              uint32
