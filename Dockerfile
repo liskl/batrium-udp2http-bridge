@@ -39,8 +39,8 @@ RUN find /go/src -type d
 FROM alpine
 WORKDIR /app
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/batrium-udp2http-bridge /app/
-COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/static/style.css /app/static/style.css
-COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/templates/index.html /app/templates/index.html
+COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/static /app/static
+COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/templates /app/templates
 
 
 CMD ["/app/batrium-udp2http-bridge"]

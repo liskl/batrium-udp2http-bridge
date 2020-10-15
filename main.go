@@ -104,40 +104,32 @@ func itob(i int) bool {
 	return bool(false)
 }
 
-type Route struct {
-	Text string
-	Url  string
-	Done bool
-}
-
 type PageData struct {
 	PageTitle string
-	Routes    []Route
 }
 
 func yourHandler(w http.ResponseWriter, r *http.Request) {
 	//push(w, "/static/style.css")
 
-	var a batrium.IndividualCellMonitorFullInfo
+	//var a batrium.IndividualCellMonitorFullInfo
 
 	data := PageData{
 		PageTitle: "Batrium udp2http bridge",
-		Routes:    []Route{},
 	}
 
-	for _, NodeInfo := range nodeInfoList {
-		json.Unmarshal([]byte(NodeInfo), &a)
+	//for _, NodeInfo := range nodeInfoList {
+	//	json.Unmarshal([]byte(NodeInfo), &a)
+	//
+	//	if len(NodeInfo) >= 1 {
+	//		var route = Route{
+	//			Url:  string(fmt.Sprintf("/0x4232/%d", a.NodeID)),
+	//			Text: string(fmt.Sprintf("Node %d", a.NodeID)),
+	//			Done: false,
+	//		}
 
-		if len(NodeInfo) >= 1 {
-			var route = Route{
-				Url:  string(fmt.Sprintf("/0x4232/%d", a.NodeID)),
-				Text: string(fmt.Sprintf("Node %d", a.NodeID)),
-				Done: false,
-			}
-
-			data.Routes = append(data.Routes, route)
-		}
-	}
+	//		data.Routes = append(data.Routes, route)
+	//	}
+	//}
 
 	tmpl := template.Must(template.ParseFiles("templates/index.html"))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -148,6 +140,23 @@ func yourHandler(w http.ResponseWriter, r *http.Request) {
 	//render(w, r, homepageTpl, "index.html", "<html></html>")
 }
 
+type link struct {
+	Text string
+	Url  string
+}
+
+type icmfiLinksPageData struct {
+	links []link
+}
+
+func yourHandler_icmfi_links(w http.ResponseWriter, r *http.Request) {
+
+	data := `{"links":[{"url":"/0x4232/1","text":"CellMon 1"},{"url":"/0x4232/2","text":"CellMon 2"},{"url":"/0x4232/3","text":"CellMon 3"},{"url":"/0x4232/4","text":"CellMon 4"},{"url":"/0x4232/5","text":"CellMon 5"},{"url":"/0x4232/6","text":"CellMon 6"},{"url":"/0x4232/7","text":"CellMon 7"}]}`
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(data))
+	// SystemDiscoveryInfo, 0x5732
+}
 func yourHandler0x5732(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(x5732))
@@ -291,6 +300,7 @@ func main() {
 
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", yourHandler)
+	r.HandleFunc("/icmfi/links", yourHandler_icmfi_links)
 	r.HandleFunc("/0x5732", yourHandler0x5732)
 	r.HandleFunc("/0x415A", yourHandler0x415A)
 	r.HandleFunc("/0x4232/{id:[0-9]+}", yourHandler0x4232)
