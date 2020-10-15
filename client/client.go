@@ -1,32 +1,31 @@
 package main
 
 import (
-	"encoding/binary"
-	"github.com/liskl/batrium-udp2http-bridge/batrium"
-	//"encoding/hex"
-	//"encoding/json"
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"math"
 	"net"
+
+	"github.com/liskl/batrium-udp2http-bridge/batrium"
 )
 
 const SystemId = uint16(1000)
-const HubId    = uint16(30000)
+const HubId = uint16(30000)
 
 type Wireformat interface {
 	getMessageType() uint16
 	getData() []byte
 }
 
-type SystemDiscoveryInfo batrium.SystemDiscoveryInfo
+type systemDiscoveryInfo batrium.SystemDiscoveryInfo
 
-func (sdi SystemDiscoveryInfo) getMessageType() uint16 {
+func (sdi systemDiscoveryInfo) getMessageType() uint16 {
 	return uint16(0x5732)
 }
 
-func (sdi SystemDiscoveryInfo) getData() []byte {
+func (sdi systemDiscoveryInfo) getData() []byte {
 
 	// create the byte slice.
 	// append all data to the byte slice
@@ -114,14 +113,13 @@ func (sdi SystemDiscoveryInfo) getData() []byte {
 	return slice
 }
 
+type individualCellMonitorBasicStatus batrium.IndividualCellMonitorBasicStatus
 
-type IndividualCellMonitorBasicStatus batrium.IndividualCellMonitorBasicStatus
-
-func (icmbs IndividualCellMonitorBasicStatus) getMessageType() uint16 {
+func (icmbs individualCellMonitorBasicStatus) getMessageType() uint16 {
 	return uint16(0x415a)
 }
 
-func (icmbs IndividualCellMonitorBasicStatus) getData() []byte {
+func (icmbs individualCellMonitorBasicStatus) getData() []byte {
 
 	// create the byte slice.
 	// append all data to the byte slice
@@ -149,7 +147,6 @@ func (icmbs IndividualCellMonitorBasicStatus) getData() []byte {
 	return slice
 }
 
-
 func sendMsg(dataIn Wireformat) {
 	conn, err := net.Dial("udp", "255.255.255.255:18542")
 	if err != nil {
@@ -175,7 +172,7 @@ func sendMsg(dataIn Wireformat) {
 }
 
 func main() {
-	sendMsg(SystemDiscoveryInfo{})
-	sendMsg(IndividualCellMonitorBasicStatus{})
+	sendMsg(systemDiscoveryInfo{})
+	sendMsg(individualCellMonitorBasicStatus{})
 
 }

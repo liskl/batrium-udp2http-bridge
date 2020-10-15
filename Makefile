@@ -21,6 +21,7 @@ clean-tests:
 format:
 	go fmt ./;
 	go fmt ./batrium;
+	go fmt ./client;
 
 build: clean format
 	docker build \

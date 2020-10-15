@@ -1,32 +1,33 @@
 # build stage
-FROM golang:1.11.4-alpine AS build-env
+FROM golang:1.15.3-alpine AS build-env
 
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git
+
+ENV PROJECT "github.com/liskl/batrium-udp2http-bridge"
+
+COPY ./main.go /go/src/${PROJECT}/main.go
+COPY ./go.sum /go/src/${PROJECT}/go.sum
+COPY ./go.mod /go/src/${PROJECT}/go.mod
+
+COPY ./static /go/src/${PROJECT}/static
+COPY ./templates /go/src/${PROJECT}/templates
+COPY ./vendor /go/src/${PROJECT}/vendor
+
+
+COPY ./batrium /go/src/${PROJECT}/batrium
+
+WORKDIR /go/src/${PROJECT}
 
 ARG RELEASE=unknown
 ARG COMMIT=unknown
 ARG BUILD_TIME=unknown
 
-ENV PROJECT "github.com/liskl/batrium-udp2http-bridge"
 ENV RELEASE ${RELEASE}
 ENV COMMIT ${COMMIT}
 ENV BUILD_TIME ${BUILD_TIME}
 
-COPY ./main.go /go/src/github.com/liskl/batrium-udp2http-bridge/main.go
-COPY ./static /go/src/github.com/liskl/batrium-udp2http-bridge/static
-COPY ./templates /go/src/github.com/liskl/batrium-udp2http-bridge/templates
-
-COPY ./batrium /go/src/github.com/liskl/batrium-udp2http-bridge/batrium
-COPY ./UDPmodule /go/src/github.com/liskl/batrium-udp2http-bridge/UDPmodule
-
-WORKDIR /go/src/github.com/liskl/batrium-udp2http-bridge
-
-RUN cd /go/src/github.com/liskl/batrium-udp2http-bridge/UDPmodule \
-    && go install ; \
-    cd .. \
-    && go get github.com/liskl/batrium-udp2http-bridge \
-    && go build \
+RUN go build -v \
   		-ldflags "-s -w \
       -X ${PROJECT}/main.Release=${RELEASE} \
   		-X ${PROJECT}/main.Commit=${COMMIT} \
@@ -41,6 +42,5 @@ WORKDIR /app
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/batrium-udp2http-bridge /app/
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/static /app/static
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/templates /app/templates
-
 
 CMD ["/app/batrium-udp2http-bridge"]
