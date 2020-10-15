@@ -6,16 +6,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
+	"github.com/liskl/batrium-udp2http-bridge/batrium"
+	log "github.com/sirupsen/logrus"
 	"html/template"
 	"math"
 	"net"
 	"net/http"
 	"os"
 	"strconv"
-
-	"github.com/gorilla/mux"
-	"github.com/liskl/batrium-udp2http-bridge/batrium"
-	log "github.com/sirupsen/logrus"
 )
 
 // UDPport port we listen on for UDP broadcasts: defaults to 18542"
@@ -105,7 +104,7 @@ func itob(i int) bool {
 	return bool(false)
 }
 
-type pageData struct {
+type PageData struct {
 	PageTitle string
 }
 
@@ -114,7 +113,7 @@ func yourHandler(w http.ResponseWriter, r *http.Request) {
 
 	//var a batrium.IndividualCellMonitorFullInfo
 
-	data := pageData{
+	data := PageData{
 		PageTitle: "Batrium udp2http bridge",
 	}
 
@@ -141,10 +140,19 @@ func yourHandler(w http.ResponseWriter, r *http.Request) {
 	//render(w, r, homepageTpl, "index.html", "<html></html>")
 }
 
-func yourHandlerIcmfiLinks(w http.ResponseWriter, r *http.Request) {
+type link struct {
+	Text string
+	Url  string
+}
 
-	baseURL := `http://127.0.0.1:8081`
-	data := fmt.Sprintf(`{"links":[{"url":"%s/0x4232/1","text":"CellMon 1"},{"url":"/0x4232/2","text":"CellMon 2"},{"url":"/0x4232/3","text":"CellMon 3"},{"url":"/0x4232/4","text":"CellMon 4"},{"url":"/0x4232/5","text":"CellMon 5"},{"url":"/0x4232/6","text":"CellMon 6"},{"url":"/0x4232/7","text":"CellMon 7"}]}`, baseURL)
+type icmfiLinksPageData struct {
+	links []link
+}
+
+func yourHandler_icmfi_links(w http.ResponseWriter, r *http.Request) {
+
+	baseUrl := `http://127.0.0.1:8081`
+	data := fmt.Sprintf(`{"links":[{"url":"%s/0x4232/1","text":"CellMon 1"},{"url":"/0x4232/2","text":"CellMon 2"},{"url":"/0x4232/3","text":"CellMon 3"},{"url":"/0x4232/4","text":"CellMon 4"},{"url":"/0x4232/5","text":"CellMon 5"},{"url":"/0x4232/6","text":"CellMon 6"},{"url":"/0x4232/7","text":"CellMon 7"}]}`, baseUrl)
 
 	w.Header().Set("Cache-Control", "no-cache,no-store,max-age=0")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -295,7 +303,7 @@ func main() {
 
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", yourHandler)
-	r.HandleFunc("/icmfi/links", yourHandlerIcmfiLinks)
+	r.HandleFunc("/icmfi/links", yourHandler_icmfi_links)
 	r.HandleFunc("/0x5732", yourHandler0x5732)
 	r.HandleFunc("/0x415A", yourHandler0x415A)
 	r.HandleFunc("/0x4232/{id:[0-9]+}", yourHandler0x4232)
