@@ -11,10 +11,10 @@ import (
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
 )
 
-const systemID = uint16(1000)
-const hubID = uint16(30000)
+const SystemId = uint16(1000)
+const HubId = uint16(30000)
 
-type wireformat interface {
+type Wireformat interface {
 	getMessageType() uint16
 	getData() []byte
 }
@@ -39,11 +39,11 @@ func (sdi systemDiscoveryInfo) getData() []byte {
 
 	slice = append(slice, byte(0x2c)) // 3
 	b4 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b4, systemID)
+	binary.LittleEndian.PutUint16(b4, SystemId)
 	slice = append(slice, b4[0], b4[1]) // 4, 5
 
 	b6 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b6, hubID)
+	binary.LittleEndian.PutUint16(b6, HubId)
 	slice = append(slice, b6[0], b6[1]) // 6, 7
 
 	slice = append(slice, byte(0x53)) // 8
@@ -133,11 +133,11 @@ func (icmbs individualCellMonitorBasicStatus) getData() []byte {
 
 	slice = append(slice, byte(0x2c)) // 3
 	b4 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b4, systemID)
+	binary.LittleEndian.PutUint16(b4, SystemId)
 	slice = append(slice, b4[0], b4[1]) // 4, 5
 
 	b6 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b6, hubID)
+	binary.LittleEndian.PutUint16(b6, HubId)
 	slice = append(slice, b6[0], b6[1]) // 6, 7
 
 	slice = append(slice, byte(0)) // 8
@@ -147,7 +147,7 @@ func (icmbs individualCellMonitorBasicStatus) getData() []byte {
 	return slice
 }
 
-func sendMsg(dataIn wireformat) {
+func sendMsg(dataIn Wireformat) {
 	conn, err := net.Dial("udp", "255.255.255.255:18542")
 	if err != nil {
 		log.Fatal(err)
