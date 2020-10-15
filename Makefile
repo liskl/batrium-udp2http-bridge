@@ -19,7 +19,8 @@ clean-tests:
 	$(shell docker rm -f "${APP}-tests" || true )
 
 format:
-	go fmt ;
+	go fmt ./;
+	go fmt ./batrium;
 
 build: clean format
 	docker build \
@@ -38,13 +39,15 @@ build-ui: clean-ui
 	docker push "${REGISTRY}/${APP}-ui:${TAG}";
 
 
-build-tests: clean-tests
+build-tests: clean-tests format
 	docker build \
 	 --build-arg "BUILD_TIME=${BUILD_TIME}" \
 	 --build-arg "COMMIT=${COMMIT}" \
 	 --build-arg "RELEASE=${RELEASE}" \
 	 -t "${REGISTRY}/${APP}-client:${TAG}" -f Dockerfile.tests . ; \
 	docker push "${REGISTRY}/${APP}-client:${TAG}";
+
+build-all: build build-ui
 
 run: build
 	docker pull "${REGISTRY}/${APP}:${TAG}";

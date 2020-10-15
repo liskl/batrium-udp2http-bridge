@@ -153,6 +153,7 @@ func yourHandler_icmfi_links(w http.ResponseWriter, r *http.Request) {
 
 	data := `{"links":[{"url":"/0x4232/1","text":"CellMon 1"},{"url":"/0x4232/2","text":"CellMon 2"},{"url":"/0x4232/3","text":"CellMon 3"},{"url":"/0x4232/4","text":"CellMon 4"},{"url":"/0x4232/5","text":"CellMon 5"},{"url":"/0x4232/6","text":"CellMon 6"},{"url":"/0x4232/7","text":"CellMon 7"}]}`
 
+	w.Header().Set("Cache-Control", "no-cache,no-store,max-age=0")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	w.Write([]byte(data))
@@ -295,7 +296,7 @@ func main() {
 
 	homepageTpl = template.Must(template.ParseFiles("templates/index.html"))
 
-	fmt.Printf("Starting: batrium-udp2http-bridge.\n")
+	log.Info("Starting: batrium-udp2http-bridge.")
 
 	r := mux.NewRouter()
 
@@ -375,94 +376,6 @@ func main() {
 	}()
 	// Bind to a port and pass our router in using a go routine
 	log.Fatal(http.ListenAndServe(":8080", r))
-}
-
-func PowerRateStateConversion(state uint8) string {
-	var result string
-
-	switch state {
-	case 0: // Off
-		result = "Off"
-	case 2: // Limited
-		result = "Limited"
-	case 4: // Normal
-		result = "Normal"
-	default:
-		result = "Error"
-	}
-
-	return string(result)
-}
-
-func SystemOpStatusConversion(state uint8) string {
-	var result string
-
-	switch state {
-	case 0: // Timeout
-		result = "Timeout"
-	case 1: // Idle
-		result = "Idle"
-	case 2: // Charging
-		result = "Charging"
-	case 3: // Discharging
-		result = "Discharging"
-	case 4: // Full
-		result = "Full"
-	case 5: // Empty
-		result = "Empty"
-	case 6: // Simulator
-		result = "Simulator"
-	case 7: // CriticalPending
-		result = "CriticalPending"
-	case 8: // CriticalOffline
-		result = "CriticalOffline"
-	case 9: // MqttOffline
-		result = "MqttOffline"
-	case 10: // AuthSetup
-		result = "AuthSetup"
-	default: // Error
-		result = "Error"
-	}
-
-	return string(result)
-}
-
-func NodeStatusConversion(state uint8) string {
-	var result string
-	switch state {
-	case 0: // None
-		result = "None"
-	case 1: // HighVolt
-		result = "HighVolt"
-	case 2: // HighTemp
-		result = "HighTemp"
-	case 3: // Ok
-		result = "Ok"
-	case 4: // Timeout
-		result = "Timeout"
-	case 5: // LowVolt
-		result = "LowVolt"
-	case 6: // Disabled
-		result = "Disabled"
-	case 7: // InBypass
-		result = "InBypass"
-	case 8: // InitialBypass
-		result = "InitialBypass"
-	case 9: // FinalBypass
-		result = "FinalBypass"
-	case 10: // MissingSetup
-		result = "MissingSetup"
-	case 11: // NoConfig
-		result = "NoConfig"
-	case 12: // CellOutLimits
-		result = "CellOutLimits"
-	case 255: // Undefined
-		result = "Undefined"
-	default: // Error
-		result = "Error"
-	}
-
-	return string(result)
 }
 
 func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int) (string, error) {
