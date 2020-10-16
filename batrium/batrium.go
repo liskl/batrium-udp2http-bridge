@@ -41,6 +41,7 @@ type SystemDiscoveryInfo struct { // 0x5732 DONE
 	ShuntRXTicks            uint8   `json:"ShuntRXTicks"`
 }
 
+// IndividualCellMonitorBasicStatusNode is only used inside 0x415A
 type IndividualCellMonitorBasicStatusNode struct {
 	NodeID         uint8  `json:"NodeID"`
 	USN            uint8  `json:"USN"`
@@ -63,9 +64,10 @@ type IndividualCellMonitorBasicStatus struct {
 	FirstNodeID uint8 `json:"FirstNodeID"`
 	LastNodeID  uint8 `json:"LastNodeID"`
 
-	CellMonList []IndividualCellMonitorBasicStatusNode `json:CellMonList`
+	CellMonList []IndividualCellMonitorBasicStatusNode `json:"CellMonList"`
 }
 
+// AddNode is used to add More Cellmons to the CellMonList in IndividualCellMonitorBasicStatus
 func (icmbs *IndividualCellMonitorBasicStatus) AddNode(node IndividualCellMonitorBasicStatusNode) []IndividualCellMonitorBasicStatusNode {
 	icmbs.CellMonList = append(icmbs.CellMonList, node)
 	return icmbs.CellMonList
