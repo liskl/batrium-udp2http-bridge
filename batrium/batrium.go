@@ -1,9 +1,19 @@
 package batrium
 
 import (
-//"encoding/json"
+	//"encoding/json"
+	"encoding/binary"
 )
 
+// Btoi converts boolean to uint8
+func Btoi(b bool) uint8 {
+	if b {
+		return uint8(1)
+	}
+	return uint8(0)
+}
+
+// SystemDiscoveryInfo is the MessageType for 0x5732
 type SystemDiscoveryInfo struct { // 0x5732 DONE
 	MessageType             string  `json:"MessageType"`
 	SystemCode              string  `json:"SystemCode"`
@@ -26,26 +36,48 @@ type SystemDiscoveryInfo struct { // 0x5732 DONE
 	CMUPollerMode           uint8   `json:"CMUPollerMode"`
 	ShuntSoC                uint8   `json:"ShuntSoC"`
 	ShuntVoltage            uint16  `json:"ShuntVoltage"`
-	ShuntCurrent            float64 `json:"ShuntCurrent"`
+	ShuntCurrent            float32 `json:"ShuntCurrent"`
 	ShuntStatus             uint8   `json:"ShuntStatus"`
 	ShuntRXTicks            uint8   `json:"ShuntRXTicks"`
 }
 
+// IndividualCellMonitorBasicStatusNode is only used inside 0x415A
+type IndividualCellMonitorBasicStatusNode struct {
+	NodeID         uint8  `json:"NodeID"`
+	USN            uint8  `json:"USN"`
+	MinCellVoltage uint16 `json:"MinCellVoltage"`
+	MaxCellVoltage uint16 `json:"MaxCellVoltage"`
+	MaxCellTemp    uint8  `json:"MaxCellTemp"`
+	BypassTemp     uint8  `json:"BypassTemp"`
+	BypassAmp      uint16 `json:"BypassAmp"`
+	NodeStatus     uint8  `json:"NodeStatus"`
+}
+
+// IndividualCellMonitorBasicStatus is the MessageType for 0x415A
 type IndividualCellMonitorBasicStatus struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"systemID"`
-	HubID       uint16 `json:"hubID"`
+	SystemID    string `json:"systemID"`
+	HubID       string `json:"hubID"`
 
 	CmuPort     uint8 `json:"cmu_port"`
 	Records     uint8 `json:"Records"`
 	FirstNodeID uint8 `json:"FirstNodeID"`
 	LastNodeID  uint8 `json:"LastNodeID"`
+
+	CellMonList []IndividualCellMonitorBasicStatusNode `json:"CellMonList"`
 }
 
+// AddNode is used to add More Cellmons to the CellMonList in IndividualCellMonitorBasicStatus
+func (icmbs *IndividualCellMonitorBasicStatus) AddNode(node IndividualCellMonitorBasicStatusNode) []IndividualCellMonitorBasicStatusNode {
+	icmbs.CellMonList = append(icmbs.CellMonList, node)
+	return icmbs.CellMonList
+}
+
+// IndividualCellMonitorFullInfo is the MessageType for 0x4232
 type IndividualCellMonitorFullInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"systemID"`
-	HubID       uint16 `json:"hubID"`
+	SystemID    string `json:"systemID"`
+	HubID       string `json:"hubID"`
 
 	NodeID                  uint8  `json:"NodeID"`
 	USN                     uint8  `json:"USN"`
@@ -74,10 +106,50 @@ type IndividualCellMonitorFullInfo struct {
 	RepeatCellV             uint8  `json:"RepeatCellV"`
 }
 
+func (icmfi IndividualCellMonitorFullInfo) getMessageType() uint16 {
+	return uint16(0x4232)
+}
+
+func (icmfi IndividualCellMonitorFullInfo) getData() []byte {
+
+	// create the byte slice.
+	// append all data to the byte slice
+
+	slice := make([]byte, 0)
+	slice = append(slice, byte(0x3a)) // 0
+
+	b1 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b1, uint16(0x4232))
+	slice = append(slice, b1[0], b1[1]) // 1, 2
+
+	slice = append(slice, byte(0x2c)) // 3
+	b4 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b4, uint16(10000))
+	slice = append(slice, b4[0], b4[1]) // 4, 5
+
+	b6 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b6, uint16(0))
+	slice = append(slice, b6[0], b6[1]) // 6, 7
+
+	slice = append(slice, byte(0)) // 8
+	slice = append(slice, byte(0)) // 9
+
+	b10 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b10, uint16(0))
+	slice = append(slice, b10[0], b10[1]) // 10, 11
+
+	b12 := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b12, uint16(0))
+	slice = append(slice, b12[0], b12[1]) // 12, 13
+
+	return slice
+}
+
+// TelemetryCombinedStatusRapidInfo is the MessageType for 0x3E32
 type TelemetryCombinedStatusRapidInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	MinCellVoltage                  uint16  `json:"MinCellVoltage"`
 	MaxCellVoltage                  uint16  `json:"MaxCellVoltage"`
@@ -107,14 +179,15 @@ type TelemetryCombinedStatusRapidInfo struct {
 	CMUPortRXNodeID                 uint8   `json:"CMU_PortRX_NodeID"`
 	CMUPortRXUSN                    uint8   `json:"CMU_PortRX_USN"`
 	ShuntVoltage                    uint16  `json:"ShuntVoltage"`
-	ShuntAmp                        float64 `json:"ShuntAmp"`
-	ShuntPower                      float64 `json:"ShuntPower"`
+	ShuntAmp                        float32 `json:"ShuntAmp"`
+	ShuntPower                      float32 `json:"ShuntPower"`
 }
 
+// TelemetryCombinedStatusFastInfo is the MessageType for 0x3F33
 type TelemetryCombinedStatusFastInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	CMUPollerMode                         uint8   `json:"CMU_PollerMode"`
 	CMUPortTXAckCount                     uint8   `json:"CMU_PortTX_AckCount"`
@@ -136,8 +209,8 @@ type TelemetryCombinedStatusFastInfo struct {
 	SystemDeviceTime                      uint32  `json:"SystemDeviceTime"`
 	ShuntStateOfCharge                    uint8   `json:"ShuntStateOfCharge"`
 	ShuntCelsius                          uint8   `json:"ShuntCelsius"`
-	ShuntNominalCapacityToFull            float64 `json:"ShuntNominalCapacityToFull"`
-	ShuntNominalCapacityToEmpty           float64 `json:"ShuntNominalCapacityToEmpty"`
+	ShuntNominalCapacityToFull            float32 `json:"ShuntNominalCapacityToFull"`
+	ShuntNominalCapacityToEmpty           float32 `json:"ShuntNominalCapacityToEmpty"`
 	ShuntPollerMode                       uint8   `json:"ShuntPollerMode"`
 	ShuntStatus                           uint8   `json:"ShuntStatus"`
 	ShuntLoStateOfChargeReCalibration     bool    `json:"ShuntLoStateOfChargeReCalibration"`
@@ -159,18 +232,19 @@ type TelemetryCombinedStatusFastInfo struct {
 	ExpansionInputSignalIn                uint8   `json:"ExpansionInputSignalIn"`
 	ExpansionInputAIN1                    uint16  `json:"ExpansionInputAIN1"`
 	ExpansionInputAIN2                    uint16  `json:"ExpansionInputAIN2"`
-	MinBypassSession                      float64 `json:"MinBypassSession"`
-	MaxBypassSession                      float64 `json:"MaxBypassSession"`
+	MinBypassSession                      float32 `json:"MinBypassSession"`
+	MaxBypassSession                      float32 `json:"MaxBypassSession"`
 	MinBypassSessionReference             uint8   `json:"MinBypassSessionReference"`
 	MaxBypassSessionReference             uint8   `json:"MaxBypassSessionReference"`
 	RebalanceBypassExtra                  bool    `json:"RebalanceBypassExtra"`
 	RepeatCellVoltCounter                 uint16  `json:"RepeatCellVoltCounter"`
 }
 
+// TelemetryCombinedStatusSlowInfo is the MessageType for 0x4032
 type TelemetryCombinedStatusSlowInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	SysStartupTime                      uint32  `json:"SysStartupTime"`
 	SysProcessControl                   bool    `json:"SysProcessControl"`
@@ -191,22 +265,23 @@ type TelemetryCombinedStatusSlowInfo struct {
 	SetupVersionForScheduler            uint8   `json:"SetupVersionForScheduler"`
 	ShuntEstimatedDurationToFullInMins  uint16  `json:"ShuntEstimatedDurationToFullInMins"`
 	ShuntEstimatedDurationToEmptyInMins uint16  `json:"ShuntEstimatedDurationToEmptyInMins"`
-	ShuntRecentChargemAhAverage         float64 `json:"ShuntRecentChargemAhAverage"`
-	ShuntRecentDischargemAhAverage      float64 `json:"ShuntRecentDischargemAhAverage"`
-	ShuntRecentNettmAh                  float64 `json:"ShuntRecentNettmAh"`
+	ShuntRecentChargemAhAverage         float32 `json:"ShuntRecentChargemAhAverage"`
+	ShuntRecentDischargemAhAverage      float32 `json:"ShuntRecentDischargemAhAverage"`
+	ShuntRecentNettmAh                  float32 `json:"ShuntRecentNettmAh"`
 	HasShuntSoCCountLo                  bool    `json:"HasShuntSoCCountLo"`
 	HasShuntSoCCountHi                  bool    `json:"HasShuntSoCCountHi"`
 	QuickSessionRecentTime              uint32  `json:"QuickSessionRecentTime"`
 	QuickSessionNumberOfRecords         uint16  `json:"QuickSessionNumberOfRecords"`
 	QuickSessionMaxRecords              uint16  `json:"QuickSessionMaxRecords"`
 	ShuntNettAccumulatedCount           int64   `json:"ShuntNettAccumulatedCount"`
-	ShuntNominalCapacityToEmpty         float64 `json:"ShuntNominalCapacityToEmpty"`
+	ShuntNominalCapacityToEmpty         float32 `json:"ShuntNominalCapacityToEmpty"`
 }
 
+// TelemetryLogicControlStatusInfo is the MessageType for 0x4732
 type TelemetryLogicControlStatusInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	CriticalIsBatteryOKCurrentState     bool  `json:"CriticalIsBatteryOKCurrentState"`
 	CriticalIsBatteryOKLiveCalc         bool  `json:"CriticalIsBatteryOKLiveCalc"`
@@ -281,10 +356,11 @@ type TelemetryLogicControlStatusInfo struct {
 	ChargingHasBypassSessionLow         bool  `json:"ChargingHasBypassSessionLow"`
 }
 
-type TelemetryRemoteStatusInfo struct { // 0x4932
+// TelemetryRemoteStatusInfo is the MessageType for 0x4932
+type TelemetryRemoteStatusInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	CanbusRXTicks          uint8  `json:"CanbusRXTicks"`
 	CanbusRXUnknownTicks   uint8  `json:"CanbusRXUnknownTicks"`
@@ -312,10 +388,11 @@ type TelemetryRemoteStatusInfo struct { // 0x4932
 	DischargeActualRxTime  uint32 `json:"DischargeActualRxTime"`
 }
 
-type TelemetryCommunicationStatusInfo struct { // 0x6131
+// TelemetryCommunicationStatusInfo is the MessageType for 0x6131
+type TelemetryCommunicationStatusInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	DeviceTime            uint32 `json:"DeviceTime"`
 	SystemOpstatus        uint8  `json:"SystemOpstatus"`
@@ -340,10 +417,11 @@ type TelemetryCommunicationStatusInfo struct { // 0x6131
 	CellmonCMURxUSN       uint8  `json:"CellmonCMURxUSN"`
 }
 
+// HardwareSystemSetupConfigurationInfo is the MessageType for 0x4A35
 type HardwareSystemSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	SetupVersion         uint8
 	SystemCode           string
@@ -360,10 +438,11 @@ type HardwareSystemSetupConfigurationInfo struct {
 	ShowStripCycle       bool
 }
 
+// HardwareCellGroupSetupConfigurationInfo is the MessageType for 0x4B35
 type HardwareCellGroupSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	SetupVersion                  uint8
 	BatteryTypeID                 uint8
@@ -385,7 +464,7 @@ type HardwareCellGroupSetupConfigurationInfo struct {
 	BypassExtraMode               uint8
 	BypassLatchInterval           uint16
 	CellMonTypeID                 uint8
-	BypassImpedance               float64
+	BypassImpedance               float32
 	BypassCellVoltLowCutout       uint16
 	BypassShuntAmpLimitCharge     uint16
 	BypassShuntAmpLimitDischarge  uint16
@@ -396,10 +475,11 @@ type HardwareCellGroupSetupConfigurationInfo struct {
 	BypassExtraAmpLimit           uint16
 }
 
+// HardwareShuntSetupConfigurationInfo is the MessageType for 0x4C33
 type HardwareShuntSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	ShuntTypeID                  uint8
 	VoltageScale                 uint16
@@ -413,24 +493,25 @@ type HardwareShuntSetupConfigurationInfo struct {
 	MonitorSoCLowRecalibration   bool
 	MonitorSoCHighRecalibration  bool
 	MonitorInBypassRecalibration bool
-	NominalCapacityInmAh         float64
-	GranularityInVolts           float64
-	GranularityInAmps            float64
-	GranularityInmAh             float64
-	GranularityInCelcius         float64
+	NominalCapacityInmAh         float32
+	GranularityInVolts           float32
+	GranularityInAmps            float32
+	GranularityInmAh             float32
+	GranularityInCelcius         float32
 	ReverseFlow                  bool
 	SetupVersion                 uint8
-	GranularityinVA              float64
-	GranularityinVAhour          float64
+	GranularityinVA              float32
+	GranularityinVAhour          float32
 	MaxVoltage                   uint16
 	MaxAmpCharge                 uint16
 	MaxAmpDischg                 uint16
 }
 
+// HardwareExpansionSetupConfigurationInfo is the MessageType for 0x4D33
 type HardwareExpansionSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	SetupVersion          uint8
 	ExtensionTemplate     uint8
@@ -456,10 +537,11 @@ type HardwareExpansionSetupConfigurationInfo struct {
 	CustomFeature2        uint16
 }
 
+// HardwareIntegrationSetupConfigurationInfo is the MessageType for 0x5334
 type HardwareIntegrationSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	SetupVersion        uint8
 	USBTXBroadcast      bool
@@ -472,10 +554,12 @@ type HardwareIntegrationSetupConfigurationInfo struct {
 	CanbusGroupAddress  uint32
 }
 
-type ControlLogicCriticalSetupConfigurationInfo struct { // 0x4F33 Not Implemented
+// ControlLogicCriticalSetupConfigurationInfo is the MessageType for 0x4F33
+// Not Implemented
+type ControlLogicCriticalSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	ControlMode                   uint8  `json:"ControlMode"`
 	AutoRecovery                  bool   `json:"AutoRecovery"`
@@ -514,10 +598,12 @@ type ControlLogicCriticalSetupConfigurationInfo struct { // 0x4F33 Not Implement
 	SetupVersion                  uint8  `json:"SetupVersion"`
 }
 
-type ControlLogicChargeSetupConfigurationInfo struct { // 0x5033 Not Implemented
+// ControlLogicChargeSetupConfigurationInfo is the MessageType for 0x5033
+// Not Implemented
+type ControlLogicChargeSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	ControlMode               uint8   `json:"ControlMode"`
 	AllowLimitedPowerStage    bool    `json:"AllowLimitedPowerStage"`
@@ -550,14 +636,16 @@ type ControlLogicChargeSetupConfigurationInfo struct { // 0x5033 Not Implemented
 	StopTimerInterval         uint32  `json:"StopTimerInterval"`
 	StartTimerInterval        uint32  `json:"StartTimerInterval"`
 	SetupVersion              uint8   `json:"SetupVersion"`
-	BypassSessionLow          float64 `json:"BypassSessionLow"`
+	BypassSessionLow          float32 `json:"BypassSessionLow"`
 	AllowBypassSession        bool    `json:"AllowBypassSession"`
 }
 
-type ControlLogicDischargeSetupConfigurationInfo struct { // 0x5158 Not Implemented
+// ControlLogicDischargeSetupConfigurationInfo is the MessageType for 0x5158
+// Not Implemented
+type ControlLogicDischargeSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	ControlMode              uint8  `json:"ControlMode"`
 	AllowLimitedPowerStage   bool   `json:"AllowLimitedPowerStage"`
@@ -588,10 +676,12 @@ type ControlLogicDischargeSetupConfigurationInfo struct { // 0x5158 Not Implemen
 	SetupVersion             uint8  `json:"SetupVersion"`
 }
 
-type ControlLogicThermalSetupConfigurationInfo struct { // 0x5258 Not Implemented
+// ControlLogicThermalSetupConfigurationInfo is the MessageType for 0x5258
+// Not Implemented
+type ControlLogicThermalSetupConfigurationInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	ControlModeHeat        uint8  `json:"ControlModeHeat"`
 	MonitorLowCellTemp     bool   `json:"MonitorLowCellTemp"`
@@ -611,10 +701,13 @@ type ControlLogicThermalSetupConfigurationInfo struct { // 0x5258 Not Implemente
 	SetupVersion           uint8  `json:"SetupVersion"`
 }
 
-type ControlLogicRemoteSetupConfigurationInfo struct { // 0x4E58 Not Implemented
-	MessageType                  string `json:"MessageType"`
-	SystemID                     uint16 `json:"SystemID"`
-	HubID                        uint16 `json:"HubID"`
+// ControlLogicRemoteSetupConfigurationInfo is the MessageType for 0x4E58
+// Not Implemented
+type ControlLogicRemoteSetupConfigurationInfo struct {
+	MessageType string `json:"MessageType"`
+	SystemID    uint16 `json:"SystemID"`
+	HubID       uint16 `json:"HubID"`
+
 	ChargeNormalVolt             uint16 `json:"ChargeNormalVolt"`
 	ChargeNormalAmp              uint16 `json:"ChargeNormalAmp"`
 	ChargeNormalVA               uint16 `json:"ChargeNormalVA"`
@@ -636,10 +729,12 @@ type ControlLogicRemoteSetupConfigurationInfo struct { // 0x4E58 Not Implemented
 	SetupVersion                 uint8  `json:"SetupVersion"`
 }
 
-type TelemetryDailySessionInfo struct { // 0x5432 Not Implemented
+// TelemetryDailySessionInfo is the MessageType for 0x5432
+// Not Implemented
+type TelemetryDailySessionInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	MinCellVoltage                                          uint16  `json:"MinCellVoltage"`
 	MaxCellVoltage                                          uint16  `json:"MaxCellVoltage"`
@@ -672,16 +767,19 @@ type TelemetryDailySessionInfo struct { // 0x5432 Not Implemented
 	CriticalEvents                                          uint8   `json:"CriticalEvents"`
 	StartTime                                               uint32  `json:"StartTime"`
 	FinishTime                                              uint32  `json:"FinishTime"`
-	CumulativeShuntAmpHourCharge                            float64 `json:"CumulativeShuntAmpHourCharge"`
-	CumulativeShuntAmpHourDischarge                         float64 `json:"CumulativeShuntAmpHourDischarge"`
-	CumulativeShuntWattHourCharge                           float64 `json:"CumulativeShuntWattHourCharge"`
-	CumulativeShuntWattHourDischarge                        float64 `json:"CumulativeShuntWattHourDischarge"`
+	CumulativeShuntAmpHourCharge                            float32 `json:"CumulativeShuntAmpHourCharge"`
+	CumulativeShuntAmpHourDischarge                         float32 `json:"CumulativeShuntAmpHourDischarge"`
+	CumulativeShuntWattHourCharge                           float32 `json:"CumulativeShuntWattHourCharge"`
+	CumulativeShuntWattHourDischarge                        float32 `json:"CumulativeShuntWattHourDischarge"`
 }
 
-type TelemetryDailySessionHistoryReply struct { // 0x5831 Not Implemented
-	MessageType                                             string `json:"MessageType"`
-	SystemID                                                uint16 `json:"SystemID"`
-	HubID                                                   uint16 `json:"HubID"`
+// TelemetryDailySessionHistoryReply is the MessageType for 0x5831
+// Not Implemented
+type TelemetryDailySessionHistoryReply struct {
+	MessageType string `json:"MessageType"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
+
 	RecordIndex                                             uint16
 	RecordTime                                              uint32
 	CriticalEvents                                          uint8
@@ -714,14 +812,16 @@ type TelemetryDailySessionHistoryReply struct { // 0x5831 Not Implemented
 	SOCPercentBandHGreaterThanZeroPercent                   uint8
 	ShuntPeakCharge                                         uint16
 	ShuntPeakDischarge                                      uint16
-	CumulativeShuntAmpHourCharge                            float64
-	CumulativeShuntAmpHourDischarge                         float64
+	CumulativeShuntAmpHourCharge                            float32
+	CumulativeShuntAmpHourDischarge                         float32
 }
 
-type TelemetryQuickSessionHistoryReply struct { // 0x6831 Not Implemented
+// TelemetryQuickSessionHistoryReply is the MessageType for 0x6831
+// Not Implemented
+type TelemetryQuickSessionHistoryReply struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	RecordIndex           uint16  `json:"RecordIndex"`
 	RecordTime            uint32  `json:"RecordTime"`
@@ -733,14 +833,16 @@ type TelemetryQuickSessionHistoryReply struct { // 0x6831 Not Implemented
 	AvgTemperature        uint8   `json:"AvgTemperature"`
 	ShuntSoCPercentHiRes  uint16  `json:"ShuntSoC_PercentHiRes"`
 	ShuntVolt             uint16  `json:"ShuntVolt"`
-	ShuntCurrent          float64 `json:"ShuntCurrent"`
+	ShuntCurrent          float32 `json:"ShuntCurrent"`
 	NumberOfCellsInBypass uint8   `json:"NumberOfCellsInBypass"`
 }
 
-type TelemetrySessionMetrics struct { // 0x5431 Not Implemented
+// TelemetrySessionMetrics is the MessageType for 0x5431
+// Not Implemented
+type TelemetrySessionMetrics struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	RecentTimeQuickSession      uint32 `json:"RecentTimeQuickSession"`
 	QuickSessionNumberOfRecords uint16 `json:"QuickSessionNumberOfRecords"`
@@ -750,10 +852,13 @@ type TelemetrySessionMetrics struct { // 0x5431 Not Implemented
 	DailysessionNumberOfRecords uint16 `json:"DailysessionNumberOfRecords"`
 	DailysessionRecordCapacity  uint16 `json:"DailysessionRecordCapacity"`
 }
-type TelemetryShuntMetricsInfo struct { // 0x7857 Not Implemented
+
+// TelemetryShuntMetricsInfo is the MessageType for 0x7857
+// Not Implemented
+type TelemetryShuntMetricsInfo struct {
 	MessageType string `json:"MessageType"`
-	SystemID    uint16 `json:"SystemID"`
-	HubID       uint16 `json:"HubID"`
+	SystemID    string `json:"SystemID"`
+	HubID       string `json:"HubID"`
 
 	ShuntSoCCycles                    uint16  `json:"ShuntSoCCycles"`
 	LastTimeAccumulationSaved         uint32  `json:"LastTimeAccumulationSaved"`
@@ -765,9 +870,9 @@ type TelemetryShuntMetricsInfo struct { // 0x7857 Not Implemented
 	HasShuntSoCHiCount                bool    `json:"HasShuntSoC_HiCount"`
 	EstimatedDurationToFullInMinutes  uint16  `json:"EstimatedDurationToFullInMinutes"`
 	EstimatedDurationToEmptyInMinutes uint16  `json:"EstimatedDurationToEmptyInMinutes"`
-	RecentChargeInAvgmAh              float64 `json:"RecentChargeInAvgmAh"`
-	RecentDischargeInAvgmAh           float64 `json:"RecentDischargeInAvgmAh"`
-	RecentNettmAh                     float64 `json:"RecentNettmAh"`
+	RecentChargeInAvgmAh              float32 `json:"RecentChargeInAvgmAh"`
+	RecentDischargeInAvgmAh           float32 `json:"RecentDischargeInAvgmAh"`
+	RecentNettmAh                     float32 `json:"RecentNettmAh"`
 	SerialNumber                      uint32  `json:"SerialNumber"`
 	ManuCode                          uint32  `json:"ManuCode"`
 	PartNumber                        uint16  `json:"PartNumber"`
@@ -775,10 +880,13 @@ type TelemetryShuntMetricsInfo struct { // 0x7857 Not Implemented
 	PNS1                              string  `json:"PNS1"`
 	PNS2                              string  `json:"PNS2"`
 }
-type TelemetryLifetimeMetricsInfo struct { // 0x5632 Not Implemented
+
+// TelemetryLifetimeMetricsInfo is the MessageType for 0x5632
+// Not Implemented
+type TelemetryLifetimeMetricsInfo struct {
 	MessageType                         string `json:"MessageType"`
-	SystemID                            uint16 `json:"SystemID"`
-	HubID                               uint16 `json:"HubID"`
+	SystemID                            string `json:"SystemID"`
+	HubID                               string `json:"HubID"`
 	FirstSyncTime                       uint32 `json:"FirstSyncTime"`
 	CountStartup                        uint32 `json:"CountStartup"`
 	CountCriticalBatteryOK              uint32 `json:"CountCriticalBatteryOK"`
@@ -808,7 +916,10 @@ type TelemetryLifetimeMetricsInfo struct { // 0x5632 Not Implemented
 	MostRecentTimeWizardSetup           uint32 `json:"MostRecentTimeWizardSetup"`
 	MostRecentTimeRebalancingExtra      uint32 `json:"MostRecentTimeRebalancingExtra"`
 }
-type TelemetryCellmonNodeStatusInfo struct { // 0x415A Not Implemented
+
+// TelemetryCellmonNodeStatusInfo is the MessageType for 0x415A
+// Not Implemented
+type TelemetryCellmonNodeStatusInfo struct {
 	//CMU Port – RX Node ID 8 uint8
 	//Records 9 uint8
 	//First Node ID 10 uint8
@@ -822,7 +933,10 @@ type TelemetryCellmonNodeStatusInfo struct { // 0x415A Not Implemented
 	//Bypass Amp Idx+8 uint16
 	//Node Status Idx+10 uint8
 }
-type TelemetryCellmonNodeFullInfo struct { // 0x4232 Not Implemented
+
+// TelemetryCellmonNodeFullInfo is the MessageType for 0x4232
+// Not Implemented
+type TelemetryCellmonNodeFullInfo struct {
 	// NodeID 8 uint8
 	// USN 9 uint8
 	// MinCellVoltage 10 uint16
@@ -846,6 +960,97 @@ type TelemetryCellmonNodeFullInfo struct { // 0x4232 Not Implemented
 	// DeviceBootversion 37 uint16
 	// DeviceSerialNum 39 uint32
 	// BypassInitialDate 43 uint32
-	// BypassSessionmAh 47 float64
+	// BypassSessionmAh 47 float32
 	// RepeatCellV 51 uint8
+}
+
+// PowerRateStateConversion does a uint8 to string lookup
+func PowerRateStateConversion(state uint8) string {
+	var result string
+
+	switch state {
+	case 0: // Off
+		result = "Off"
+	case 2: // Limited
+		result = "Limited"
+	case 4: // Normal
+		result = "Normal"
+	default:
+		result = "Error"
+	}
+
+	return string(result)
+}
+
+// SystemOpStatusConversion does a uint8 to string lookup
+func SystemOpStatusConversion(state uint8) string {
+	var result string
+
+	switch state {
+	case 0: // Timeout
+		result = "Timeout"
+	case 1: // Idle
+		result = "Idle"
+	case 2: // Charging
+		result = "Charging"
+	case 3: // Discharging
+		result = "Discharging"
+	case 4: // Full
+		result = "Full"
+	case 5: // Empty
+		result = "Empty"
+	case 6: // Simulator
+		result = "Simulator"
+	case 7: // CriticalPending
+		result = "CriticalPending"
+	case 8: // CriticalOffline
+		result = "CriticalOffline"
+	case 9: // MqttOffline
+		result = "MqttOffline"
+	case 10: // AuthSetup
+		result = "AuthSetup"
+	default: // Error
+		result = "Error"
+	}
+
+	return string(result)
+}
+
+// NodeStatusConversion does a uint8 to string lookup
+func NodeStatusConversion(state uint8) string {
+	var result string
+	switch state {
+	case 0: // None
+		result = "None"
+	case 1: // HighVolt
+		result = "HighVolt"
+	case 2: // HighTemp
+		result = "HighTemp"
+	case 3: // Ok
+		result = "Ok"
+	case 4: // Timeout
+		result = "Timeout"
+	case 5: // LowVolt
+		result = "LowVolt"
+	case 6: // Disabled
+		result = "Disabled"
+	case 7: // InBypass
+		result = "InBypass"
+	case 8: // InitialBypass
+		result = "InitialBypass"
+	case 9: // FinalBypass
+		result = "FinalBypass"
+	case 10: // MissingSetup
+		result = "MissingSetup"
+	case 11: // NoConfig
+		result = "NoConfig"
+	case 12: // CellOutLimits
+		result = "CellOutLimits"
+	case 255: // Undefined
+		result = "Undefined"
+	default: // Error
+		result = "Error"
+	}
+
+	return string(result)
 }
