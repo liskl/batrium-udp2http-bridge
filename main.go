@@ -143,8 +143,7 @@ func yourHandler(w http.ResponseWriter, r *http.Request) {
 
 func yourHandlerIcmfiLinks(w http.ResponseWriter, r *http.Request) {
 
-	baseURL := ``
-	data := fmt.Sprintf(`{"links":[{"url":"%s/0x4232/1","text":"CellMon 1"},{"url":"%s/0x4232/2","text":"CellMon 2"},{"url":"%s/0x4232/3","text":"CellMon 3"},{"url":"%s/0x4232/4","text":"CellMon 4"},{"url":"%s/0x4232/5","text":"CellMon 5"},{"url":"%s/0x4232/6","text":"CellMon 6"},{"url":"%s/0x4232/7","text":"CellMon 7"}]}`, baseURL)
+	data := `{"links":[{"url":"/0x4232/1","text":"CellMon 1"},{"url":"/0x4232/2","text":"CellMon 2"},{"url":"/0x4232/3","text":"CellMon 3"},{"url":"/0x4232/4","text":"CellMon 4"},{"url":"/0x4232/5","text":"CellMon 5"},{"url":"/0x4232/6","text":"CellMon 6"},{"url":"/0x4232/7","text":"CellMon 7"}]}`
 
 	w.Header().Set("Cache-Control", "no-cache,no-store,max-age=0")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
