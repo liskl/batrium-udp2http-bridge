@@ -3,6 +3,7 @@ package batrium
 import (
 	//"encoding/json"
 	"encoding/binary"
+	//"types"
 )
 
 // Btoi converts boolean to uint8
@@ -11,34 +12,6 @@ func Btoi(b bool) uint8 {
 		return uint8(1)
 	}
 	return uint8(0)
-}
-
-// SystemDiscoveryInfo is the MessageType for 0x5732
-type SystemDiscoveryInfo struct { // 0x5732 DONE
-	MessageType             string  `json:"MessageType"`
-	SystemCode              string  `json:"SystemCode"`
-	FirmwareVersion         uint16  `json:"FirmwareVersion"`
-	HardwareVersion         uint16  `json:"HardwareVersion"`
-	DeviceTime              uint32  `json:"DeviceTime"`
-	SystemOpstatus          uint8   `json:"SystemOpstatus"`
-	SystemAuthMode          uint8   `json:"SystemAuthMode"`
-	CriticalBattOkState     bool    `json:"CriticalBattOkState"`
-	ChargePowerRateState    uint8   `json:"ChargePowerRateState"`
-	DischargePowerRateState uint8   `json:"DischargePowerRateState"`
-	HeatOnState             bool    `json:"HeatOnState"`
-	CoolOnState             bool    `json:"CoolOnState"`
-	MinCellVolt             uint16  `json:"MinCellVolt"`
-	MaxCellVolt             uint16  `json:"MaxCellVolt"`
-	AvgCellVolt             uint16  `json:"AvgCellVolt"`
-	MinCellTemp             uint8   `json:"MinCellTemp"`
-	NumOfActiveCellmons     uint8   `json:"NumOfActiveCellmons"`
-	CMUPortRxUSN            uint8   `json:"CMUPortRxUSN"`
-	CMUPollerMode           uint8   `json:"CMUPollerMode"`
-	ShuntSoC                uint8   `json:"ShuntSoC"`
-	ShuntVoltage            uint16  `json:"ShuntVoltage"`
-	ShuntCurrent            float32 `json:"ShuntCurrent"`
-	ShuntStatus             uint8   `json:"ShuntStatus"`
-	ShuntRXTicks            uint8   `json:"ShuntRXTicks"`
 }
 
 // IndividualCellMonitorBasicStatusNode is only used inside 0x415A

@@ -15,6 +15,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
+	"github.com/liskl/batrium-udp2http-bridge/batrium/types"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -341,11 +343,7 @@ func main() {
 				hex.Encode(dst, bytearray)
 
 				if string(dst[0:2]) == "3a" {
-					a := &batrium.IndividualCellMonitorBasicStatus{
-						MessageType: fmt.Sprintf("0x%X", binary.LittleEndian.Uint16(bytearray[1:3])),
-						SystemID:    fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[4:6])),
-						HubID:       fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[6:8])),
-					}
+					a := types.NewIndividualCellMonitorBasicStatus(bytearray)
 
 					// Declared an empty interface of type Array
 					var results []map[string]interface{}
@@ -370,44 +368,45 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
-func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int) (string, error) {
+func determineMessageType(a *types.IndividualCellMonitorBasicStatus, bytearray []byte, cc int) (string, error) {
 
 	switch a.MessageType {
-	case "0x5732": // System Discovery Info
-		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:50]))
-
-		b := bytes.Trim(bytearray[8:8+8], "\x00")
-		c := &batrium.SystemDiscoveryInfo{
-			MessageType:             fmt.Sprintf("%s", a.MessageType),
-			SystemCode:              fmt.Sprintf("%s", b),
-			FirmwareVersion:         binary.LittleEndian.Uint16(bytearray[16 : 16+2]),
-			HardwareVersion:         binary.LittleEndian.Uint16(bytearray[18 : 18+2]),
-			DeviceTime:              binary.LittleEndian.Uint32(bytearray[20 : 20+4]),
-			SystemOpstatus:          uint8(bytearray[24]),
-			SystemAuthMode:          uint8(bytearray[25]),
-			CriticalBattOkState:     bool(itob(int(bytearray[26]))),
-			ChargePowerRateState:    uint8(bytearray[27]),
-			DischargePowerRateState: uint8(bytearray[28]),
-			HeatOnState:             bool(itob(int(bytearray[29]))),
-			CoolOnState:             bool(itob(int(bytearray[30]))),
-			MinCellVolt:             binary.LittleEndian.Uint16(bytearray[31 : 31+2]),
-			MaxCellVolt:             binary.LittleEndian.Uint16(bytearray[33 : 33+2]),
-			AvgCellVolt:             binary.LittleEndian.Uint16(bytearray[35 : 35+2]),
-			MinCellTemp:             uint8(bytearray[37]) - 40,
-			NumOfActiveCellmons:     uint8(bytearray[38]),
-			CMUPortRxUSN:            uint8(bytearray[39]),
-			CMUPollerMode:           uint8(bytearray[40]),
-			ShuntSoC:                uint8(bytearray[41]) / 2,
-			ShuntVoltage:            binary.LittleEndian.Uint16(bytearray[42 : 42+2]),
-			ShuntCurrent:            Float32frombytes(bytearray[44 : 44+4]),
-			ShuntStatus:             uint8(bytearray[48]),
-			ShuntRXTicks:            uint8(bytearray[49]),
-		}
-		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
-
-		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
-		x5732 = string(jsonOutput)
-		return string(jsonOutput), nil
+	// case "0x5732": // System Discovery Info
+	// 	//log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:50]))
+	//
+	// 	//b := bytes.Trim(bytearray[8:8+8], "\x00")
+	// 	c := types.NewSystemDiscoveryInfo(a, bytearray)
+	// 	// c := &batrium.SystemDiscoveryInfo{
+	// 	// 	MessageType:             fmt.Sprintf("%s", a.MessageType),
+	// 	// 	SystemCode:              fmt.Sprintf("%s", b),
+	// 	// 	FirmwareVersion:         binary.LittleEndian.Uint16(bytearray[16 : 16+2]),
+	// 	// 	HardwareVersion:         binary.LittleEndian.Uint16(bytearray[18 : 18+2]),
+	// 	// 	DeviceTime:              binary.LittleEndian.Uint32(bytearray[20 : 20+4]),
+	// 	// 	SystemOpstatus:          uint8(bytearray[24]),
+	// 	// 	SystemAuthMode:          uint8(bytearray[25]),
+	// 	// 	CriticalBattOkState:     bool(itob(int(bytearray[26]))),
+	// 	// 	ChargePowerRateState:    uint8(bytearray[27]),
+	// 	// 	DischargePowerRateState: uint8(bytearray[28]),
+	// 	// 	HeatOnState:             bool(itob(int(bytearray[29]))),
+	// 	// 	CoolOnState:             bool(itob(int(bytearray[30]))),
+	// 	// 	MinCellVolt:             binary.LittleEndian.Uint16(bytearray[31 : 31+2]),
+	// 	// 	MaxCellVolt:             binary.LittleEndian.Uint16(bytearray[33 : 33+2]),
+	// 	// 	AvgCellVolt:             binary.LittleEndian.Uint16(bytearray[35 : 35+2]),
+	// 	// 	MinCellTemp:             uint8(bytearray[37]) - 40,
+	// 	// 	NumOfActiveCellmons:     uint8(bytearray[38]),
+	// 	// 	CMUPortRxUSN:            uint8(bytearray[39]),
+	// 	// 	CMUPollerMode:           uint8(bytearray[40]),
+	// 	// 	ShuntSoC:                uint8(bytearray[41]) / 2,
+	// 	// 	ShuntVoltage:            binary.LittleEndian.Uint16(bytearray[42 : 42+2]),
+	// 	// 	ShuntCurrent:            Float32frombytes(bytearray[44 : 44+4]),
+	// 	// 	ShuntStatus:             uint8(bytearray[48]),
+	// 	// 	ShuntRXTicks:            uint8(bytearray[49]),
+	// 	// }
+	// 	log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
+	//
+	// 	jsonOutput, _ := json.MarshalIndent(c, "", "    ")
+	// 	x5732 = string(jsonOutput)
+	// 	return string(jsonOutput), nil
 
 	case "0x415A": // Individual cell monitor Basic Status (subset for up to 16)
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:177]))
