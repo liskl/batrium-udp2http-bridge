@@ -329,6 +329,8 @@ func main() {
 		log.Panic(fmt.Printf("Listening for UDP Broadcasts: %v", err))
 	}
 
+	defer conn.Close()
+
 	bytearray := make([]byte, 4096)
 	go func() {
 		for {
