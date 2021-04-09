@@ -15,6 +15,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -284,6 +289,24 @@ func yourHandler0x5431(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(x5431))
 }
 
+var (
+	httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
+		Name: "batrium-udp2http-bridge_http_duration_seconds",
+		Help: "Duration of HTTP requests.",
+	}, []string{"path"})
+)
+
+// prometheusMiddleware implements mux.MiddlewareFunc.
+func prometheusMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route := mux.CurrentRoute(r)
+		path, _ := route.GetPathTemplate()
+		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+		next.ServeHTTP(w, r)
+		timer.ObserveDuration()
+	})
+}
+
 func main() {
 
 	homepageTpl = template.Must(template.ParseFiles("templates/index.html"))
@@ -291,6 +314,8 @@ func main() {
 	log.Info("Starting: batrium-udp2http-bridge.")
 
 	r := mux.NewRouter()
+
+	r.Use(prometheusMiddleware)
 
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", yourHandler)
@@ -320,6 +345,9 @@ func main() {
 	r.HandleFunc("/0x5831", yourHandler0x5831)
 	r.HandleFunc("/0x6831", yourHandler0x6831)
 	r.HandleFunc("/0x5431", yourHandler0x5431)
+
+	r.Path("/metrics").Handler(promhttp.Handler())
+
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
 	addr := net.UDPAddr{Port: UDPport, IP: net.ParseIP(UDPhost)}
