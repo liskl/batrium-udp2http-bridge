@@ -291,20 +291,20 @@ func yourHandler0x5431(w http.ResponseWriter, r *http.Request) {
 
 var (
 	httpDuration = promauto.NewHistogramVec(prometheus.HistogramOpts{
-		Name: "batrium-udp2http-bridge_http_duration_seconds",
+		Name: "bu2hb_http_duration_seconds",
 		Help: "Duration of HTTP requests.",
 	}, []string{"path"})
 )
 
 // prometheusMiddleware implements mux.MiddlewareFunc.
 func prometheusMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		route := mux.CurrentRoute(r)
-		path, _ := route.GetPathTemplate()
-		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
-		next.ServeHTTP(w, r)
-		timer.ObserveDuration()
-	})
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    route := mux.CurrentRoute(r)
+    path, _ := route.GetPathTemplate()
+    timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+    next.ServeHTTP(w, r)
+    timer.ObserveDuration()
+  })
 }
 
 func main() {

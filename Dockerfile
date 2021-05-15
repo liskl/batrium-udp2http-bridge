@@ -37,7 +37,9 @@ RUN go build -v \
 RUN find /go/src -type d
 
 # final stage
-FROM alpine
+FROM alpine:latest
+
+RUN apk update && apk upgrade
 WORKDIR /app
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/batrium-udp2http-bridge /app/
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/static /app/static
