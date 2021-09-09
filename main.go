@@ -298,13 +298,13 @@ var (
 
 // prometheusMiddleware implements mux.MiddlewareFunc.
 func prometheusMiddleware(next http.Handler) http.Handler {
-  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    route := mux.CurrentRoute(r)
-    path, _ := route.GetPathTemplate()
-    timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
-    next.ServeHTTP(w, r)
-    timer.ObserveDuration()
-  })
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route := mux.CurrentRoute(r)
+		path, _ := route.GetPathTemplate()
+		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+		next.ServeHTTP(w, r)
+		timer.ObserveDuration()
+	})
 }
 
 func main() {

@@ -1,5 +1,5 @@
 # build stage
-FROM golang:1.16-alpine AS build-env
+FROM golang:1.17.0-alpine3.14 AS build-env
 
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git
@@ -37,7 +37,7 @@ RUN go build -v \
 RUN find /go/src -type d
 
 # final stage
-FROM alpine:latest
+FROM alpine:3.14.2
 
 RUN apk update && apk upgrade
 WORKDIR /app

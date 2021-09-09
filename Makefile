@@ -1,6 +1,6 @@
 APP?=batrium-udp2http-bridge
 TAG?=latest
-REGISTRY?=registry.infra.liskl.com
+REGISTRY?=liskl
 
 COMMIT?=$(shell git rev-parse --short HEAD)
 BUILD_TIME?=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
@@ -36,7 +36,7 @@ build-ui: clean-ui
 	 --build-arg "BUILD_TIME=${BUILD_TIME}" \
 	 --build-arg "COMMIT=${COMMIT}" \
 	 --build-arg "RELEASE=${RELEASE}" \
-	 -t "${REGISTRY}/${APP}:${TAG}" -f Dockerfile.ui . ; \
+	 -t "${REGISTRY}/${APP}-ui:${TAG}" -f Dockerfile.ui . ; \
 	docker push "${REGISTRY}/${APP}-ui:${TAG}";
 
 
@@ -65,8 +65,7 @@ run-ui: build-ui
 
 
 test:
-	 cd ./src/github.com/liskl/${APP} \
-	 && clear; go test -v ./... \
+	 go test -v ./... \
 	 && mkdir -p ./tests \
 	 && go test -coverprofile tests/cp.out \
 	 && go tool cover -html=tests/cp.out ;
