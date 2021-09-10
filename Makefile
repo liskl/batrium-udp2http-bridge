@@ -65,10 +65,15 @@ run-ui: build-ui
 
 
 test:
-	 go test -v ./... \
-	 && mkdir -p ./tests \
-	 && go test -coverprofile tests/cp.out \
-	 && go tool cover -html=tests/cp.out ;
+	go test -v ./... \
+	&& mkdir -p ./tests \
+	&& go test -coverprofile tests/cp.out \
+	&& go tool cover -html=tests/cp.out ;
+
+snyk: build-ui
+	snyk test \
+	&& snyk test --docker "${REGISTRY}/${APP}-ui:${TAG}" --file="Dockerfile" \
+	&& snyk test --docker "${REGISTRY}/${APP}:${TAG}" --file="Dockerfile" ;
 
 release: test
 	docker tag "${REGISTRY}/${APP}:${TAG}" "${REGISTRY}/${APP}:${RELEASE}";

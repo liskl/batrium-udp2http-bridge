@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -82,10 +83,16 @@ func init() {
 
 	// Only log the info severity or above.
 	//log.SetLevel(log.WarnLevel)
-	//log.SetLevel(log.InfoLevel)
 	log.SetLevel(log.InfoLevel)
+	//log.SetLevel(log.DebugLevel)
 	//log.SetLevel(log.TraceLevel)
 
+}
+
+func Base64Encode(message []byte) []byte {
+	b := make([]byte, base64.StdEncoding.EncodedLen(len(message)))
+	base64.StdEncoding.Encode(b, message)
+	return b
 }
 
 // Float32frombytes converts []bytes form float32 to float
@@ -380,7 +387,11 @@ func main() {
 					// Declared an empty interface of type Array
 					var results []map[string]interface{}
 
-					response, _ := determineMessageType(a, bytearray, cc)
+					//if a.MessageType == "0x5732" {
+					log.Info(fmt.Sprintf("RAW %s: %s, Size: %d", fmt.Sprintf("%s", a.MessageType), Base64Encode(bytes.Trim(bytearray, "\x00")), len(bytes.Trim(bytearray, "\x00"))))
+					//}
+
+					response, _ := determineMessageType(a, bytes.Trim(bytearray, "\x00"), cc)
 
 					// Unmarshal or Decode the JSON to the interface.
 					json.Unmarshal([]byte(response), &results)
