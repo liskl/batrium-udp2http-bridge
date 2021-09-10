@@ -145,7 +145,6 @@ func Test0x415AOutput(t *testing.T) {
 	}
 }
 
-
 func Test0x4232Output(t *testing.T) {
 
 	sourceData := "OjJCLC4Uw3oIAdIP3A9CQQAADwkDAFQLaBAEEKgGc18IAgIGAgIA0S0kEKFOOWHMdNND+kEAAAMF+NwP3A9CQQAAAwb53A/cD0JBAAADB/rSD9wPQkEAAAMIAdIP3A9CQQAAAwkC3A/cD0FBAAADCgPcD9wPQUEAAAMLBNwP3A9BQAAAAwwF3A/cD0JBAAADDQbcD9wPQkEAAAMOB9wP3A9CQAAAAw=="
@@ -211,381 +210,375 @@ func Test0x4232Output(t *testing.T) {
 
 func Test0x3E32Output(t *testing.T) {
 
-    sourceData := `OjI+LC4Uw3rSD9wPAwFBQgkBAAAAAAAAQEELAdoPQQAAAAAODgEMBTwWhuKgwzKMksFD+kEAAAMF+NwP3A9CQQAAAwb53A/cD0JBAAADB/rSD9wPQkEAAAMI7dwP3A9CQQAAAwnu3A/cD0FBAAADCu/cD9wPQUEAAAML8NwP3A9BQAAAAwzx3A/cD0JBAAADDfLcD9wPQkEAAAMO89wP3A9CQAAAAw==`
-    expectedJsonOutput := `{"MessageType":"0x3E32","SystemID":"5166","HubID":"31427","MinCellVoltage":4050,"MaxCellVoltage":4060,"MinCellVoltReference":3,"MaxCellVoltReference":1,"MinCellTemperature":65,"MaxCellTemperature":66,"MinCellTempReference":9,"MaxCellTempReference":1,"MinCellBypassCurrent":0,"MaxCellBypassCurrent":0,"MinCellBypassRefID":0,"MaxCellBypassRefID":0,"MinBypassTemperature":64,"MaxBypassTemperature":65,"MinBypassTempRefID":11,"MaxBypassTempRefID":1,"AverageCellVoltage":4058,"AverageCellTemperature":65,"NumberOfCellsAboveInitialBypass":0,"NumberOfCellsAboveFinalBypass":0,"NumberOfCellsInBypass":0,"NumberOfCellsOverdue":0,"NumberOfCellsActive":14,"NumberOfCellsInSystem":14,"CMU_PortTX_NodeID":14,"CMU_PortRX_NodeID":12,"CMU_PortRX_USN":5,"ShuntVoltage":5692,"ShuntAmp":-321.7697,"ShuntPower":-18.318455}`
-    bytearray, _ := Base64Decode([]byte(sourceData))
-    dst := make([]byte, hex.EncodedLen(len(bytearray)))
-    hex.Encode(dst, bytearray)
+	sourceData := `OjI+LC4Uw3rSD9wPAwFBQgkBAAAAAAAAQEELAdoPQQAAAAAODgEMBTwWhuKgwzKMksFD+kEAAAMF+NwP3A9CQQAAAwb53A/cD0JBAAADB/rSD9wPQkEAAAMI7dwP3A9CQQAAAwnu3A/cD0FBAAADCu/cD9wPQUEAAAML8NwP3A9BQAAAAwzx3A/cD0JBAAADDfLcD9wPQkEAAAMO89wP3A9CQAAAAw==`
+	expectedJsonOutput := `{"MessageType":"0x3E32","SystemID":"5166","HubID":"31427","MinCellVoltage":4050,"MaxCellVoltage":4060,"MinCellVoltReference":3,"MaxCellVoltReference":1,"MinCellTemperature":65,"MaxCellTemperature":66,"MinCellTempReference":9,"MaxCellTempReference":1,"MinCellBypassCurrent":0,"MaxCellBypassCurrent":0,"MinCellBypassRefID":0,"MaxCellBypassRefID":0,"MinBypassTemperature":64,"MaxBypassTemperature":65,"MinBypassTempRefID":11,"MaxBypassTempRefID":1,"AverageCellVoltage":4058,"AverageCellTemperature":65,"NumberOfCellsAboveInitialBypass":0,"NumberOfCellsAboveFinalBypass":0,"NumberOfCellsInBypass":0,"NumberOfCellsOverdue":0,"NumberOfCellsActive":14,"NumberOfCellsInSystem":14,"CMU_PortTX_NodeID":14,"CMU_PortRX_NodeID":12,"CMU_PortRX_USN":5,"ShuntVoltage":5692,"ShuntAmp":-321.7697,"ShuntPower":-18.318455}`
+	bytearray, _ := Base64Decode([]byte(sourceData))
+	dst := make([]byte, hex.EncodedLen(len(bytearray)))
+	hex.Encode(dst, bytearray)
 
-    if string(dst[0:2]) == "3a" {
-        a := IndividualCellMonitorBasicStatus{
-            MessageType: fmt.Sprintf("0x%X", binary.LittleEndian.Uint16(bytearray[1:3])),
-            SystemID:    fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[4:6])),
-            HubID:       fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[6:8])),
-        }
+	if string(dst[0:2]) == "3a" {
+		a := IndividualCellMonitorBasicStatus{
+			MessageType: fmt.Sprintf("0x%X", binary.LittleEndian.Uint16(bytearray[1:3])),
+			SystemID:    fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[4:6])),
+			HubID:       fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[6:8])),
+		}
 
-        fmt.Sprintf("MsgType: %s", a.MessageType)
-        fmt.Sprintf("SystemID: %s", a.SystemID)
-        fmt.Sprintf("HubID: %s", a.HubID)
+		fmt.Sprintf("MsgType: %s", a.MessageType)
+		fmt.Sprintf("SystemID: %s", a.SystemID)
+		fmt.Sprintf("HubID: %s", a.HubID)
 
-        c := &TelemetryCombinedStatusRapidInfo{
-            MessageType:                     fmt.Sprintf("%s", a.MessageType),
-            SystemID:                        fmt.Sprintf("%s", a.SystemID),
-            HubID:                           fmt.Sprintf("%s", a.HubID),
-            MinCellVoltage:                  binary.LittleEndian.Uint16(bytearray[8 : 8+2]),
-            MaxCellVoltage:                  binary.LittleEndian.Uint16(bytearray[10 : 10+2]),
-            MinCellVoltReference:            uint8(bytearray[12]),
-            MaxCellVoltReference:            uint8(bytearray[13]),
-            MinCellTemperature:              uint8(bytearray[14]),
-            MaxCellTemperature:              uint8(bytearray[15]),
-            MinCellTempReference:            uint8(bytearray[16]),
-            MaxCellTempReference:            uint8(bytearray[17]),
-            MinCellBypassCurrent:            binary.LittleEndian.Uint16(bytearray[18 : 18+2]),
-            MaxCellBypassCurrent:            binary.LittleEndian.Uint16(bytearray[20 : 20+2]),
-            MinCellBypassRefID:              uint8(bytearray[22]),
-            MaxCellBypassRefID:              uint8(bytearray[23]),
-            MinBypassTemperature:            uint8(bytearray[24]),
-            MaxBypassTemperature:            uint8(bytearray[25]),
-            MinBypassTempRefID:              uint8(bytearray[26]),
-            MaxBypassTempRefID:              uint8(bytearray[27]),
-            AverageCellVoltage:              binary.LittleEndian.Uint16(bytearray[28 : 28+2]),
-            AverageCellTemperature:          uint8(bytearray[30]),
-            NumberOfCellsAboveInitialBypass: uint8(bytearray[31]),
-            NumberOfCellsAboveFinalBypass:   uint8(bytearray[32]),
-            NumberOfCellsInBypass:           uint8(bytearray[33]),
-            NumberOfCellsOverdue:            uint8(bytearray[34]),
-            NumberOfCellsActive:             uint8(bytearray[35]),
-            NumberOfCellsInSystem:           uint8(bytearray[36]),
-            CMUPortTXNodeID:                 uint8(bytearray[36]),
-            CMUPortRXNodeID:                 uint8(bytearray[38]),
-            CMUPortRXUSN:                    uint8(bytearray[39]),
-            ShuntVoltage:                    binary.LittleEndian.Uint16(bytearray[40 : 40+2]),
-            ShuntAmp:                        Float32frombytes(bytearray[42 : 42+4]),
-            ShuntPower:                      Float32frombytes(bytearray[46 : 46+4]),
-        }
+		c := &TelemetryCombinedStatusRapidInfo{
+			MessageType:                     fmt.Sprintf("%s", a.MessageType),
+			SystemID:                        fmt.Sprintf("%s", a.SystemID),
+			HubID:                           fmt.Sprintf("%s", a.HubID),
+			MinCellVoltage:                  binary.LittleEndian.Uint16(bytearray[8 : 8+2]),
+			MaxCellVoltage:                  binary.LittleEndian.Uint16(bytearray[10 : 10+2]),
+			MinCellVoltReference:            uint8(bytearray[12]),
+			MaxCellVoltReference:            uint8(bytearray[13]),
+			MinCellTemperature:              uint8(bytearray[14]),
+			MaxCellTemperature:              uint8(bytearray[15]),
+			MinCellTempReference:            uint8(bytearray[16]),
+			MaxCellTempReference:            uint8(bytearray[17]),
+			MinCellBypassCurrent:            binary.LittleEndian.Uint16(bytearray[18 : 18+2]),
+			MaxCellBypassCurrent:            binary.LittleEndian.Uint16(bytearray[20 : 20+2]),
+			MinCellBypassRefID:              uint8(bytearray[22]),
+			MaxCellBypassRefID:              uint8(bytearray[23]),
+			MinBypassTemperature:            uint8(bytearray[24]),
+			MaxBypassTemperature:            uint8(bytearray[25]),
+			MinBypassTempRefID:              uint8(bytearray[26]),
+			MaxBypassTempRefID:              uint8(bytearray[27]),
+			AverageCellVoltage:              binary.LittleEndian.Uint16(bytearray[28 : 28+2]),
+			AverageCellTemperature:          uint8(bytearray[30]),
+			NumberOfCellsAboveInitialBypass: uint8(bytearray[31]),
+			NumberOfCellsAboveFinalBypass:   uint8(bytearray[32]),
+			NumberOfCellsInBypass:           uint8(bytearray[33]),
+			NumberOfCellsOverdue:            uint8(bytearray[34]),
+			NumberOfCellsActive:             uint8(bytearray[35]),
+			NumberOfCellsInSystem:           uint8(bytearray[36]),
+			CMUPortTXNodeID:                 uint8(bytearray[36]),
+			CMUPortRXNodeID:                 uint8(bytearray[38]),
+			CMUPortRXUSN:                    uint8(bytearray[39]),
+			ShuntVoltage:                    binary.LittleEndian.Uint16(bytearray[40 : 40+2]),
+			ShuntAmp:                        Float32frombytes(bytearray[42 : 42+4]),
+			ShuntPower:                      Float32frombytes(bytearray[46 : 46+4]),
+		}
 
-        jsonOutput, _ := json.MarshalIndent(c, "", "    ")
+		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 
-        jsonBuffer := new(bytes.Buffer)
-        json.Compact(jsonBuffer, []byte(string(jsonOutput)))
+		jsonBuffer := new(bytes.Buffer)
+		json.Compact(jsonBuffer, []byte(string(jsonOutput)))
 
-        //fmt.Println( fmt.Sprintf("response: %s", string(fmt.Sprintf("%v, %d", jsonBuffer, len(bytearray)))))
-        got := string(fmt.Sprintf("%v", jsonBuffer))
-        if got != expectedJsonOutput {
-            t.Errorf("jsonOuput = %s; wanted %s", got, expectedJsonOutput)
-        }
-    }
+		//fmt.Println( fmt.Sprintf("response: %s", string(fmt.Sprintf("%v, %d", jsonBuffer, len(bytearray)))))
+		got := string(fmt.Sprintf("%v", jsonBuffer))
+		if got != expectedJsonOutput {
+			t.Errorf("jsonOuput = %s; wanted %s", got, expectedJsonOutput)
+		}
+	}
 }
 
-
 func TestBtoiTrue(t *testing.T) {
-    expected := uint8(1)
-    got := Btoi(bool(true))
-    if got != expected {
-        t.Errorf("Ouput = %d; wanted %d", got, expected)
-    }   
+	expected := uint8(1)
+	got := Btoi(bool(true))
+	if got != expected {
+		t.Errorf("Ouput = %d; wanted %d", got, expected)
+	}
 }
 
 func TestBtoiFalse(t *testing.T) {
-    expected := uint8(0)
-    got := Btoi(bool(false))
-    if got != expected {
-        t.Errorf("Ouput = %d; wanted %d", got, expected)
-    }   
+	expected := uint8(0)
+	got := Btoi(bool(false))
+	if got != expected {
+		t.Errorf("Ouput = %d; wanted %d", got, expected)
+	}
 }
 
 func TestSHA256(t *testing.T) {
-    expected := "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde"
-    got := SHA256("HelloWorld!")
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "729e344a01e52c822bdfdec61e28d6eda02658d2e7d2b80a9b9029f41e212dde"
+	got := SHA256("HelloWorld!")
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
-
 
 func TestIndividualCellMonitorFullInfoGetMessageType(t *testing.T) {
 
-    sourceData := "OjJCLC4Uw3oIAdIP3A9CQQAADwkDAFQLaBAEEKgGc18IAgIGAgIA0S0kEKFOOWHMdNND+kEAAAMF+NwP3A9CQQAAAwb53A/cD0JBAAADB/rSD9wPQkEAAAMIAdIP3A9CQQAAAwkC3A/cD0FBAAADCgPcD9wPQUEAAAMLBNwP3A9BQAAAAwwF3A/cD0JBAAADDQbcD9wPQkEAAAMOB9wP3A9CQAAAAw=="
-    expectedOutput := string("0x4232")
-    bytearray, _ := Base64Decode([]byte(sourceData))
-    dst := make([]byte, hex.EncodedLen(len(bytearray)))
-    hex.Encode(dst, bytearray)
+	sourceData := "OjJCLC4Uw3oIAdIP3A9CQQAADwkDAFQLaBAEEKgGc18IAgIGAgIA0S0kEKFOOWHMdNND+kEAAAMF+NwP3A9CQQAAAwb53A/cD0JBAAADB/rSD9wPQkEAAAMIAdIP3A9CQQAAAwkC3A/cD0FBAAADCgPcD9wPQUEAAAMLBNwP3A9BQAAAAwwF3A/cD0JBAAADDQbcD9wPQkEAAAMOB9wP3A9CQAAAAw=="
+	expectedOutput := string("0x4232")
+	bytearray, _ := Base64Decode([]byte(sourceData))
+	dst := make([]byte, hex.EncodedLen(len(bytearray)))
+	hex.Encode(dst, bytearray)
 
-    if string(dst[0:2]) == "3a" {
-        a := IndividualCellMonitorBasicStatus{
-            MessageType: fmt.Sprintf("0x%X", binary.LittleEndian.Uint16(bytearray[1:3])),
-            SystemID:    fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[4:6])),
-            HubID:       fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[6:8])),
-        }
+	if string(dst[0:2]) == "3a" {
+		a := IndividualCellMonitorBasicStatus{
+			MessageType: fmt.Sprintf("0x%X", binary.LittleEndian.Uint16(bytearray[1:3])),
+			SystemID:    fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[4:6])),
+			HubID:       fmt.Sprintf("%d", binary.LittleEndian.Uint16(bytearray[6:8])),
+		}
 
-        fmt.Sprintf("MsgType: %s", a.MessageType)
-        fmt.Sprintf("SystemID: %s", a.SystemID)
-        fmt.Sprintf("HubID: %s", a.HubID)
+		fmt.Sprintf("MsgType: %s", a.MessageType)
+		fmt.Sprintf("SystemID: %s", a.SystemID)
+		fmt.Sprintf("HubID: %s", a.HubID)
 
-        c := &IndividualCellMonitorFullInfo{
-            MessageType:             fmt.Sprintf("%s", a.MessageType),
-            SystemID:                fmt.Sprintf("%s", a.SystemID),
-            HubID:                   fmt.Sprintf("%s", a.HubID),
-            NodeID:                  uint8(bytearray[8]),
-            USN:                     uint8(bytearray[9]),
-            MinCellVoltage:          binary.LittleEndian.Uint16(bytearray[10 : 10+2]),
-            MaxCellVoltage:          binary.LittleEndian.Uint16(bytearray[12 : 12+2]),
-            MaxCellTemp:             uint8(bytearray[14]),
-            BypassTemp:              uint8(bytearray[16]),
-            BypassAmp:               binary.LittleEndian.Uint16(bytearray[17 : 17+2]),
-            Status:                  uint8(bytearray[20]),
-            ErrorDataCounter:        uint8(bytearray[18]),
-            ResetCounter:            uint8(bytearray[19]),
-            IsOverdue:               uint8(bytearray[21]),
-            ParamLowCellVoltage:     binary.LittleEndian.Uint16(bytearray[22 : 22+2]),
-            ParamHighCellVoltage:    binary.LittleEndian.Uint16(bytearray[24 : 24+2]),
-            ParamBypassVoltageLevel: binary.LittleEndian.Uint16(bytearray[26 : 26+2]),
-            ParamBypassAmp:          binary.LittleEndian.Uint16(bytearray[28 : 28+2]),
-            ParamBypassTempLimit:    uint8(bytearray[30]),
-            ParamHighCellTemp:       uint8(bytearray[31]),
-            ParamRawVoltCalOffset:   uint8(bytearray[32]),
-            DeviceFWVersion:         binary.LittleEndian.Uint16(bytearray[33 : 33+2]),
-            DeviceHWVersion:         binary.LittleEndian.Uint16(bytearray[35 : 35+2]),
-            DeviceBootVersion:       binary.LittleEndian.Uint16(bytearray[37 : 37+2]),
-            DeviceSerialNum:         binary.LittleEndian.Uint32(bytearray[39 : 39+4]),
-            BypassInitialDate:       binary.LittleEndian.Uint32(bytearray[43 : 43+4]),
-            BypassSessionmAh:        uint8(bytearray[47]),
-            RepeatCellV:             uint8(bytearray[51]),
-        }
+		c := &IndividualCellMonitorFullInfo{
+			MessageType:             fmt.Sprintf("%s", a.MessageType),
+			SystemID:                fmt.Sprintf("%s", a.SystemID),
+			HubID:                   fmt.Sprintf("%s", a.HubID),
+			NodeID:                  uint8(bytearray[8]),
+			USN:                     uint8(bytearray[9]),
+			MinCellVoltage:          binary.LittleEndian.Uint16(bytearray[10 : 10+2]),
+			MaxCellVoltage:          binary.LittleEndian.Uint16(bytearray[12 : 12+2]),
+			MaxCellTemp:             uint8(bytearray[14]),
+			BypassTemp:              uint8(bytearray[16]),
+			BypassAmp:               binary.LittleEndian.Uint16(bytearray[17 : 17+2]),
+			Status:                  uint8(bytearray[20]),
+			ErrorDataCounter:        uint8(bytearray[18]),
+			ResetCounter:            uint8(bytearray[19]),
+			IsOverdue:               uint8(bytearray[21]),
+			ParamLowCellVoltage:     binary.LittleEndian.Uint16(bytearray[22 : 22+2]),
+			ParamHighCellVoltage:    binary.LittleEndian.Uint16(bytearray[24 : 24+2]),
+			ParamBypassVoltageLevel: binary.LittleEndian.Uint16(bytearray[26 : 26+2]),
+			ParamBypassAmp:          binary.LittleEndian.Uint16(bytearray[28 : 28+2]),
+			ParamBypassTempLimit:    uint8(bytearray[30]),
+			ParamHighCellTemp:       uint8(bytearray[31]),
+			ParamRawVoltCalOffset:   uint8(bytearray[32]),
+			DeviceFWVersion:         binary.LittleEndian.Uint16(bytearray[33 : 33+2]),
+			DeviceHWVersion:         binary.LittleEndian.Uint16(bytearray[35 : 35+2]),
+			DeviceBootVersion:       binary.LittleEndian.Uint16(bytearray[37 : 37+2]),
+			DeviceSerialNum:         binary.LittleEndian.Uint32(bytearray[39 : 39+4]),
+			BypassInitialDate:       binary.LittleEndian.Uint32(bytearray[43 : 43+4]),
+			BypassSessionmAh:        uint8(bytearray[47]),
+			RepeatCellV:             uint8(bytearray[51]),
+		}
 
-        Output := c.getMessageType()
+		Output := c.getMessageType()
 
-        //fmt.Println( fmt.Sprintf("response: %s", string(fmt.Sprintf("%v, %d", jsonBuffer, len(bytearray)))))
-        got := string(Output)
-        if got != expectedOutput {
-            t.Errorf("Ouput = %s; wanted %s", got, expectedOutput)
-        }
-    }  
+		//fmt.Println( fmt.Sprintf("response: %s", string(fmt.Sprintf("%v, %d", jsonBuffer, len(bytearray)))))
+		got := string(Output)
+		if got != expectedOutput {
+			t.Errorf("Ouput = %s; wanted %s", got, expectedOutput)
+		}
+	}
 }
 
 
 // PowerRateStateConversion does a uint8 to string lookup
 func TestPowerRateStateConversionOff(t *testing.T) {
-    expected := "Off"
-    got := PowerRateStateConversion(uint8(0))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Off"
+	got := PowerRateStateConversion(uint8(0))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestPowerRateStateConversionLimited(t *testing.T) {
-    expected := "Limited"
-    got := PowerRateStateConversion(uint8(2))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Limited"
+	got := PowerRateStateConversion(uint8(2))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestPowerRateStateConversionNormal(t *testing.T) {
-    expected := "Normal"
-    got := PowerRateStateConversion(uint8(4))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Normal"
+	got := PowerRateStateConversion(uint8(4))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestPowerRateStateConversionError(t *testing.T) {
-    expected := "Error"
-    got := PowerRateStateConversion(uint8(22))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Error"
+	got := PowerRateStateConversion(uint8(22))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
-
 
 // SystemOpStatusConversion does a uint8 to string lookup
 func TestSystemOpStatusConversionTimeout(t *testing.T) {
-    expected := "Timeout"
-    got := SystemOpStatusConversion(uint8(0))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Timeout"
+	got := SystemOpStatusConversion(uint8(0))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionIdle(t *testing.T) {
-    expected := "Idle"
-    got := SystemOpStatusConversion(uint8(1))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Idle"
+	got := SystemOpStatusConversion(uint8(1))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionCharging(t *testing.T) {
-    expected := "Charging"
-    got := SystemOpStatusConversion(uint8(2))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Charging"
+	got := SystemOpStatusConversion(uint8(2))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionDischarging(t *testing.T) {
-    expected := "Discharging"
-    got := SystemOpStatusConversion(uint8(3))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Discharging"
+	got := SystemOpStatusConversion(uint8(3))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionFull(t *testing.T) {
-    expected := "Full"
-    got := SystemOpStatusConversion(uint8(4))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Full"
+	got := SystemOpStatusConversion(uint8(4))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionEmpty(t *testing.T) {
-    expected := "Empty"
-    got := SystemOpStatusConversion(uint8(5))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Empty"
+	got := SystemOpStatusConversion(uint8(5))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionSimulator(t *testing.T) {
-    expected := "Simulator"
-    got := SystemOpStatusConversion(uint8(6))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Simulator"
+	got := SystemOpStatusConversion(uint8(6))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionCriticalPending(t *testing.T) {
-    expected := "CriticalPending"
-    got := SystemOpStatusConversion(uint8(7))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "CriticalPending"
+	got := SystemOpStatusConversion(uint8(7))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionCriticalOffline(t *testing.T) {
-    expected := "CriticalOffline"
-    got := SystemOpStatusConversion(uint8(8))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "CriticalOffline"
+	got := SystemOpStatusConversion(uint8(8))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionMqttOffline(t *testing.T) {
-    expected := "MqttOffline"
-    got := SystemOpStatusConversion(uint8(9))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "MqttOffline"
+	got := SystemOpStatusConversion(uint8(9))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionAuthSetup(t *testing.T) {
-    expected := "AuthSetup"
-    got := SystemOpStatusConversion(uint8(10))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "AuthSetup"
+	got := SystemOpStatusConversion(uint8(10))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestSystemOpStatusConversionError(t *testing.T) {
-    expected := "Error"
-    got := SystemOpStatusConversion(uint8(32))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "Error"
+	got := SystemOpStatusConversion(uint8(32))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
-
-
-
 
 func TestNodeStatusConversionNone(t *testing.T) {
-    expected := "None"
-    got := NodeStatusConversion(uint8(0))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    }   
+	expected := "None"
+	got := NodeStatusConversion(uint8(0))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionHighVolt(t *testing.T) {
-    expected := "HighVolt"
-    got := NodeStatusConversion(uint8(1))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "HighVolt"
+	got := NodeStatusConversion(uint8(1))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionHighTemp(t *testing.T) {
-    expected := "HighTemp"
-    got := NodeStatusConversion(uint8(2))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "HighTemp"
+	got := NodeStatusConversion(uint8(2))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionOk(t *testing.T) {
-    expected := "Ok"
-    got := NodeStatusConversion(uint8(3))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "Ok"
+	got := NodeStatusConversion(uint8(3))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionTimeout(t *testing.T) {
-    expected := "Timeout"
-    got := NodeStatusConversion(uint8(4))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "Timeout"
+	got := NodeStatusConversion(uint8(4))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionLowVolt(t *testing.T) {
-    expected := "LowVolt"
-    got := NodeStatusConversion(uint8(5))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "LowVolt"
+	got := NodeStatusConversion(uint8(5))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionDisabled(t *testing.T) {
-    expected := "Disabled"
-    got := NodeStatusConversion(uint8(6))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "Disabled"
+	got := NodeStatusConversion(uint8(6))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionInBypass(t *testing.T) {
-    expected := "InBypass"
-    got := NodeStatusConversion(uint8(7))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "InBypass"
+	got := NodeStatusConversion(uint8(7))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionInitialBypass(t *testing.T) {
-    expected := "InitialBypass"
-    got := NodeStatusConversion(uint8(8))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "InitialBypass"
+	got := NodeStatusConversion(uint8(8))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionFinalBypass(t *testing.T) {
-    expected := "FinalBypass"
-    got := NodeStatusConversion(uint8(9))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "FinalBypass"
+	got := NodeStatusConversion(uint8(9))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionMissingSetup(t *testing.T) {
-    expected := "MissingSetup"
-    got := NodeStatusConversion(uint8(10))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "MissingSetup"
+	got := NodeStatusConversion(uint8(10))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionNoConfig(t *testing.T) {
-    expected := "NoConfig"
-    got := NodeStatusConversion(uint8(11))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "NoConfig"
+	got := NodeStatusConversion(uint8(11))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionCellOutLimits(t *testing.T) {
-    expected := "CellOutLimits"
-    got := NodeStatusConversion(uint8(12))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "CellOutLimits"
+	got := NodeStatusConversion(uint8(12))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionUndefined(t *testing.T) {
-    expected := "Undefined"
-    got := NodeStatusConversion(uint8(255))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "Undefined"
+	got := NodeStatusConversion(uint8(255))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }
 func TestNodeStatusConversionError(t *testing.T) {
-    expected := "Error"
-    got := NodeStatusConversion(uint8(22))
-    if got != expected {
-        t.Errorf("Ouput = %s; wanted %s", got, expected)
-    } 
+	expected := "Error"
+	got := NodeStatusConversion(uint8(22))
+	if got != expected {
+		t.Errorf("Ouput = %s; wanted %s", got, expected)
+	}
 }

@@ -5,9 +5,9 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"hash"
 	"math"
-	"fmt"
 )
 
 // Btoi converts boolean to uint8
@@ -139,7 +139,7 @@ type IndividualCellMonitorFullInfo struct {
 func (icmfi *IndividualCellMonitorFullInfo) getMessageType() string {
 
 	return fmt.Sprintf("%s", []byte(icmfi.MessageType))
-	 
+
 	//return uint16(0x4232)
 }
 

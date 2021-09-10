@@ -388,7 +388,7 @@ func main() {
 					var results []map[string]interface{}
 
 					//if a.MessageType == "0x5732" {
-					log.Info(fmt.Sprintf("RAW %s: %s, Size: %d", fmt.Sprintf("%s", a.MessageType), Base64Encode(bytes.Trim(bytearray, "\x00")), len(bytes.Trim(bytearray, "\x00"))))
+					//log.Info(fmt.Sprintf("RAW %s: %s, Size: %d", fmt.Sprintf("%s", a.MessageType), Base64Encode(bytes.Trim(bytearray, "\x00")), len(bytes.Trim(bytearray, "\x00"))))
 					//}
 
 					response, _ := determineMessageType(a, bytes.Trim(bytearray, "\x00"), cc)
