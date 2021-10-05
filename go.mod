@@ -9,4 +9,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 )
 
-replace github.com/miekg/dns => github.com/miekg/dns v1.1.43
+replace (
+	github.com/miekg/dns => github.com/miekg/dns v1.1.43
+	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.0.3
+)
