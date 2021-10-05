@@ -12,4 +12,5 @@ require (
 replace (
 	github.com/miekg/dns => github.com/miekg/dns v1.1.43
 	github.com/nats-io/jwt => github.com/nats-io/jwt/v2 v2.1.0
+	github.com/nats-io/jwt/v2 => github.com/nats-io/jwt/v2 v2.1.0
 )
