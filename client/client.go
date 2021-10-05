@@ -34,7 +34,7 @@ func (sdi systemDiscoveryInfo) getData() []byte {
 	slice = append(slice, byte(0x3a)) // 0
 
 	b1 := make([]byte, 2)
-	binary.LittleEndian.PutUint16(b1, uint16(0x3257))
+	binary.LittleEndian.PutUint16(b1, uint16(0x5732))
 	slice = append(slice, b1[0], b1[1]) // 1, 2
 
 	slice = append(slice, byte(0x2c)) // 3
@@ -95,7 +95,7 @@ func (sdi systemDiscoveryInfo) getData() []byte {
 	slice = append(slice, b35[0], b35[1]) // 35, 36
 
 	slice = append(slice, byte(0)) // 37
-	slice = append(slice, byte(0)) // 38
+	slice = append(slice, byte(3)) // 38
 	slice = append(slice, byte(0)) // 39
 	slice = append(slice, byte(0)) // 40
 	slice = append(slice, byte(0)) // 41
@@ -174,5 +174,4 @@ func sendMsg(dataIn wireformat) {
 func main() {
 	sendMsg(systemDiscoveryInfo{})
 	sendMsg(individualCellMonitorBasicStatus{})
-
 }
