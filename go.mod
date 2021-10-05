@@ -8,3 +8,5 @@ require (
 	github.com/prometheus/client_golang v1.11.0
 	github.com/sirupsen/logrus v1.8.1
 )
+
+replace github.com/miekg/dns => github.com/miekg/dns v1.1.43
