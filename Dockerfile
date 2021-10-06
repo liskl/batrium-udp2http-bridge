@@ -14,6 +14,8 @@ COPY ./static /go/src/${PROJECT}/static
 COPY ./templates /go/src/${PROJECT}/templates
 
 COPY ./batrium /go/src/${PROJECT}/batrium
+COPY ./metrics /go/src/${PROJECT}/metrics
+
 
 WORKDIR /go/src/${PROJECT}
 
@@ -42,7 +44,7 @@ WORKDIR /app
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/batrium-udp2http-bridge /app/
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/static /app/static
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/templates /app/templates
-COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/vendor /app/vendor
+#COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/vendor /app/vendor
 
 
 CMD ["/app/batrium-udp2http-bridge"]
