@@ -12,14 +12,13 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
-	"github.com/liskl/batrium-udp2http-bridge/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -298,17 +297,14 @@ var (
 )
 
 // prometheusMiddleware implements mux.MiddlewareFunc.
-func prometheusMiddleware(m metrics.Metrics) mux.MiddlewareFunc {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			route := mux.CurrentRoute(r)
-			path, _ := route.GetPathTemplate()
-			tags := []string{"endpoint", path}
-			operationName := "call_endpoint"
-			defer m.Elapsed("endpoint call timing", operationName, tags)(time.Now())
-			next.ServeHTTP(w, r)
-		})
-	}
+func prometheusMiddleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    route := mux.CurrentRoute(r)
+    path, _ := route.GetPathTemplate()
+    timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
+    next.ServeHTTP(w, r)
+    timer.ObserveDuration()
+  })
 }
 
 func main() {
@@ -316,9 +312,10 @@ func main() {
 	homepageTpl = template.Must(template.ParseFiles("templates/index.html"))
 
 	log.Info("Starting: batrium-udp2http-bridge.")
-	m := metrics.NewPrometheusMetrics()
+
 	r := mux.NewRouter()
-	r.Use(prometheusMiddleware(m))
+
+	r.Use(prometheusMiddleware)
 
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", yourHandler)
@@ -348,6 +345,8 @@ func main() {
 	r.HandleFunc("/0x5831", yourHandler0x5831)
 	r.HandleFunc("/0x6831", yourHandler0x6831)
 	r.HandleFunc("/0x5431", yourHandler0x5431)
+
+	r.Path("/metrics").Handler(promhttp.Handler())
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
@@ -381,7 +380,7 @@ func main() {
 					// Declared an empty interface of type Array
 					var results []map[string]interface{}
 
-					response, _ := determineMessageType(a, bytearray, cc, m)
+					response, _ := determineMessageType(a, bytearray, cc)
 
 					// Unmarshal or Decode the JSON to the interface.
 					json.Unmarshal([]byte(response), &results)
@@ -401,7 +400,8 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
-func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int, m metrics.Metrics) (string, error) {
+func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int) (string, error) {
+
 	switch a.MessageType {
 	case "0x5732": // System Discovery Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:50]))
@@ -434,16 +434,7 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			ShuntRXTicks:            uint8(bytearray[49]),
 		}
 		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
-		tags := []string{
-			"MessageType", c.MessageType,
-			"SystemCode", c.SystemCode,
-			"FirmwareVersion", fmt.Sprintf("%d", c.FirmwareVersion),
-			"HardwareVersion", fmt.Sprintf("%d", c.HardwareVersion),
-		}
-		m.Counter("System Discovery Info packets counter", "system_discovery_info", tags, 1)
-		m.GaugeSet("System Discovery Info ShuntVoltage", "system_discovery_info_shunt_voltage", tags, float64(c.ShuntVoltage))
-		m.GaugeSet("System Discovery Info ShuntCurrent", "system_discovery_info_shunt_current", tags, float64(c.ShuntCurrent))
-		m.GaugeSet("System Discovery Info NumOfActiveCellmons", "system_discovery_info_num_of_active_cellmons", tags, float64(c.NumOfActiveCellmons))
+
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5732 = string(jsonOutput)
 		return string(jsonOutput), nil
@@ -488,14 +479,6 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x415A = string(jsonOutput)
-		tags := []string{
-			"MessageType", c.MessageType,
-			"SystemID", c.SystemID,
-			"HubID", c.HubID,
-		}
-		m.Counter("Individual cell monitor Basic Status (subset for up to 16)", "individual_cell_monitor_basic_status", tags, 1)
-		m.Counter("Individual cell monitor Basic Status (subset for up to 16)", "individual_cell_monitor_basic_status_cell_mon_list", tags, float64(len(c.CellMonList)))
-
 		return string(jsonOutput), nil
 
 	case "0x4232": // Individual cell monitor Full Info (node specific), [Json]
