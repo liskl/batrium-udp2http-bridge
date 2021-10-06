@@ -55,6 +55,7 @@ run: build
 	docker run --rm --name "${APP}" -it \
 		-p 18542:18542/udp \
 		-p 8080:8080/tcp \
+		-p 9001:9001/tcp \
 		"${REGISTRY}/${APP}:${TAG}" ;
 
 run-ui: build-ui
