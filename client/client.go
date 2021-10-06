@@ -95,7 +95,7 @@ func (sdi systemDiscoveryInfo) getData() []byte {
 	slice = append(slice, b35[0], b35[1]) // 35, 36
 
 	slice = append(slice, byte(0)) // 37
-	slice = append(slice, byte(3)) // 38
+	slice = append(slice, byte(0)) // 38
 	slice = append(slice, byte(0)) // 39
 	slice = append(slice, byte(0)) // 40
 	slice = append(slice, byte(0)) // 41
