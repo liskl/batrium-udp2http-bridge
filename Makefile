@@ -1,6 +1,6 @@
 APP?=batrium-udp2http-bridge
 TAG?=latest
-REGISTRY?=registry.infra.liskl.com
+REGISTRY?=liskl
 
 COMMIT?=$(shell git rev-parse --short HEAD)
 BUILD_TIME?=$(shell date -u '+%Y-%m-%d_%H:%M:%S')
