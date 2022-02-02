@@ -976,6 +976,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x4B35": // Hardware - Cell Group setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:53]))
 		c := &batrium.HardwareCellGroupSetupConfigurationInfo{
+			MessageType:                   fmt.Sprintf("%s", a.MessageType),
+			SystemID:                      fmt.Sprintf("%s", a.SystemID),
+			HubID:                         fmt.Sprintf("%s", a.HubID),
 			SetupVersion:                  uint8(bytearray[8]),
 			BatteryTypeID:                 uint8(bytearray[9]),
 			FirstNodeID:                   uint8(bytearray[10]),
@@ -1014,6 +1017,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x4C33": // Hardware - Shunt setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:60]))
 		c := &batrium.HardwareShuntSetupConfigurationInfo{
+			MessageType:                  fmt.Sprintf("%s", a.MessageType),
+			SystemID:                     fmt.Sprintf("%s", a.SystemID),
+			HubID:                        fmt.Sprintf("%s", a.HubID),
 			ShuntTypeID:                  uint8(bytearray[8]),
 			VoltageScale:                 binary.LittleEndian.Uint16(bytearray[9 : 9+2]),
 			AmpScale:                     binary.LittleEndian.Uint16(bytearray[11 : 11+2]),
@@ -1047,6 +1053,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x4D33": // Hardware - Expansion setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:32]))
 		c := &batrium.HardwareExpansionSetupConfigurationInfo{
+			MessageType:           fmt.Sprintf("%s", a.MessageType),
+			SystemID:              fmt.Sprintf("%s", a.SystemID),
+			HubID:                 fmt.Sprintf("%s", a.HubID),
 			SetupVersion:          uint8(bytearray[8]),
 			ExtensionTemplate:     uint8(bytearray[9]),
 			NeoPixelExtStatusMode: uint8(bytearray[10]),
@@ -1078,6 +1087,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x5334": // Hardware - Integration setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:26]))
 		c := &batrium.HardwareIntegrationSetupConfigurationInfo{
+			MessageType:         fmt.Sprintf("%s", a.MessageType),
+			SystemID:            fmt.Sprintf("%s", a.SystemID),
+			HubID:               fmt.Sprintf("%s", a.HubID),
 			SetupVersion:        uint8(bytearray[8]),
 			USBTXBroadcast:      bool(itob(int(bytearray[9]))),
 			WifiUDPTXBroadcast:  bool(itob(int(bytearray[10]))),
