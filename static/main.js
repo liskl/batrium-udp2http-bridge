@@ -4,7 +4,7 @@ const icmfi = new Vue({
     links: []
   },
   created () {
-    fetch('http://127.0.0.1:8080/icmfi/links')
+    fetch('/icmfi/links')
     .then(response => response.json())
     .then(json => {
       this.links = json.links

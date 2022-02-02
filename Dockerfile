@@ -12,7 +12,7 @@ COPY ./go.mod /go/src/${PROJECT}/go.mod
 
 COPY ./static /go/src/${PROJECT}/static
 COPY ./templates /go/src/${PROJECT}/templates
-COPY ./vendor /go/src/${PROJECT}/vendor
+#COPY ./vendor /go/src/${PROJECT}/vendor
 
 
 COPY ./batrium /go/src/${PROJECT}/batrium
