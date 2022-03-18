@@ -39,7 +39,7 @@ RUN go build -v \
 RUN find /go/src -type d
 
 # final stage
-FROM alpine:latest
+FROM alpine:3.15
 
 RUN apk update && apk upgrade
 WORKDIR /app
