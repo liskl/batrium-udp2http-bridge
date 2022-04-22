@@ -4,7 +4,7 @@ const icmfi = new Vue({
     links: []
   },
   created () {
-    fetch('http://127.0.0.1:8080/icmfi/links')
+    fetch('/icmfi/links')
     .then(response => response.json())
     .then(json => {
       this.links = json.links
@@ -19,7 +19,7 @@ const x5732 = new Vue({
     MessageType: ""
   },
   created () {
-    fetch('http://127.0.0.1:8080/0x5732')
+    fetch('/0x5732')
     .then(response => response.json())
     .then(json => {
       this.MessageType = json.MessageType
