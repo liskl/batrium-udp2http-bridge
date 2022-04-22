@@ -13,13 +13,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/liskl/batrium-udp2http-bridge/batrium"
+	"github.com/liskl/batrium-udp2http-bridge/metrics"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -304,14 +305,17 @@ var (
 )
 
 // prometheusMiddleware implements mux.MiddlewareFunc.
-func prometheusMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		route := mux.CurrentRoute(r)
-		path, _ := route.GetPathTemplate()
-		timer := prometheus.NewTimer(httpDuration.WithLabelValues(path))
-		next.ServeHTTP(w, r)
-		timer.ObserveDuration()
-	})
+func prometheusMiddleware(m metrics.Metrics) mux.MiddlewareFunc {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			route := mux.CurrentRoute(r)
+			path, _ := route.GetPathTemplate()
+			tags := []string{"endpoint", path}
+			operationName := "call_endpoint"
+			defer m.Elapsed("endpoint call timing", operationName, tags)(time.Now())
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 func main() {
@@ -319,10 +323,9 @@ func main() {
 	homepageTpl = template.Must(template.ParseFiles("templates/index.html"))
 
 	log.Info("Starting: batrium-udp2http-bridge.")
-
+	m := metrics.NewPrometheusMetrics()
 	r := mux.NewRouter()
-
-	r.Use(prometheusMiddleware)
+	r.Use(prometheusMiddleware(m))
 
 	// Routes consist of a path and a handler function.
 	r.HandleFunc("/", yourHandler)
@@ -352,8 +355,6 @@ func main() {
 	r.HandleFunc("/0x5831", yourHandler0x5831)
 	r.HandleFunc("/0x6831", yourHandler0x6831)
 	r.HandleFunc("/0x5431", yourHandler0x5431)
-
-	r.Path("/metrics").Handler(promhttp.Handler())
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 
@@ -387,11 +388,7 @@ func main() {
 					// Declared an empty interface of type Array
 					var results []map[string]interface{}
 
-					//if a.MessageType == "0x5732" {
-					//log.Info(fmt.Sprintf("RAW %s: %s, Size: %d", fmt.Sprintf("%s", a.MessageType), Base64Encode(bytes.Trim(bytearray, "\x00")), len(bytes.Trim(bytearray, "\x00"))))
-					//}
-
-					response, _ := determineMessageType(a, bytes.Trim(bytearray, "\x00"), cc)
+					response, _ := determineMessageType(a, bytearray, cc, m)
 
 					// Unmarshal or Decode the JSON to the interface.
 					json.Unmarshal([]byte(response), &results)
@@ -411,8 +408,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
-func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int) (string, error) {
-
+func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray []byte, cc int, m metrics.Metrics) (string, error) {
 	switch a.MessageType {
 	case "0x5732": // System Discovery Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:50]))
@@ -445,7 +441,16 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 			ShuntRXTicks:            uint8(bytearray[49]),
 		}
 		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
-
+		tags := []string{
+			"MessageType", c.MessageType,
+			"SystemCode", c.SystemCode,
+			"FirmwareVersion", fmt.Sprintf("%d", c.FirmwareVersion),
+			"HardwareVersion", fmt.Sprintf("%d", c.HardwareVersion),
+		}
+		m.Counter("System Discovery Info packets counter", "system_discovery_info", tags, 1)
+		m.GaugeSet("System Discovery Info ShuntVoltage", "system_discovery_info_shunt_voltage", tags, float64(c.ShuntVoltage))
+		m.GaugeSet("System Discovery Info ShuntCurrent", "system_discovery_info_shunt_current", tags, float64(c.ShuntCurrent))
+		m.GaugeSet("System Discovery Info NumOfActiveCellmons", "system_discovery_info_num_of_active_cellmons", tags, float64(c.NumOfActiveCellmons))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x5732 = string(jsonOutput)
 		return string(jsonOutput), nil
@@ -490,6 +495,14 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 		log.Debug(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), c))
 		jsonOutput, _ := json.MarshalIndent(c, "", "    ")
 		x415A = string(jsonOutput)
+		tags := []string{
+			"MessageType", c.MessageType,
+			"SystemID", c.SystemID,
+			"HubID", c.HubID,
+		}
+		m.Counter("Individual cell monitor Basic Status (subset for up to 16)", "individual_cell_monitor_basic_status", tags, 1)
+		m.Counter("Individual cell monitor Basic Status (subset for up to 16)", "individual_cell_monitor_basic_status_cell_mon_list", tags, float64(len(c.CellMonList)))
+
 		return string(jsonOutput), nil
 
 	case "0x4232": // Individual cell monitor Full Info (node specific), [Json]
@@ -970,6 +983,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x4B35": // Hardware - Cell Group setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:53]))
 		c := &batrium.HardwareCellGroupSetupConfigurationInfo{
+			MessageType:                   fmt.Sprintf("%s", a.MessageType),
+			SystemID:                      fmt.Sprintf("%s", a.SystemID),
+			HubID:                         fmt.Sprintf("%s", a.HubID),
 			SetupVersion:                  uint8(bytearray[8]),
 			BatteryTypeID:                 uint8(bytearray[9]),
 			FirstNodeID:                   uint8(bytearray[10]),
@@ -1008,6 +1024,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x4C33": // Hardware - Shunt setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:60]))
 		c := &batrium.HardwareShuntSetupConfigurationInfo{
+			MessageType:                  fmt.Sprintf("%s", a.MessageType),
+			SystemID:                     fmt.Sprintf("%s", a.SystemID),
+			HubID:                        fmt.Sprintf("%s", a.HubID),
 			ShuntTypeID:                  uint8(bytearray[8]),
 			VoltageScale:                 binary.LittleEndian.Uint16(bytearray[9 : 9+2]),
 			AmpScale:                     binary.LittleEndian.Uint16(bytearray[11 : 11+2]),
@@ -1041,6 +1060,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x4D33": // Hardware - Expansion setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:32]))
 		c := &batrium.HardwareExpansionSetupConfigurationInfo{
+			MessageType:           fmt.Sprintf("%s", a.MessageType),
+			SystemID:              fmt.Sprintf("%s", a.SystemID),
+			HubID:                 fmt.Sprintf("%s", a.HubID),
 			SetupVersion:          uint8(bytearray[8]),
 			ExtensionTemplate:     uint8(bytearray[9]),
 			NeoPixelExtStatusMode: uint8(bytearray[10]),
@@ -1072,6 +1094,9 @@ func determineMessageType(a *batrium.IndividualCellMonitorBasicStatus, bytearray
 	case "0x5334": // Hardware - Integration setup configuration Info
 		log.Trace(fmt.Sprintf("%s: %v", fmt.Sprintf("%s", a.MessageType), bytearray[0:26]))
 		c := &batrium.HardwareIntegrationSetupConfigurationInfo{
+			MessageType:         fmt.Sprintf("%s", a.MessageType),
+			SystemID:            fmt.Sprintf("%s", a.SystemID),
+			HubID:               fmt.Sprintf("%s", a.HubID),
 			SetupVersion:        uint8(bytearray[8]),
 			USBTXBroadcast:      bool(itob(int(bytearray[9]))),
 			WifiUDPTXBroadcast:  bool(itob(int(bytearray[10]))),

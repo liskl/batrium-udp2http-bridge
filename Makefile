@@ -1,3 +1,17 @@
+# Copyright 2021 The batrium-udp2http-bridge Authors.
+# SPDX-License-Identifier: Apache-2.0
+#
+# Makefile for batrium-udp2http-bridge service.
+
+SHELL := /usr/bin/env bash
+GOOS = $(shell go env GOOS)
+GOARCH = $(shell go env GOARCH)
+MYGOBIN = $(shell go env GOBIN)
+ifeq ($(MYGOBIN),)
+MYGOBIN = $(shell go env GOPATH)/bin
+endif
+export PATH := $(MYGOBIN):$(PATH)
+
 APP?=batrium-udp2http-bridge
 TAG?=latest
 REGISTRY?=liskl
@@ -55,6 +69,7 @@ run: build
 	docker run --rm --name "${APP}" -it \
 		-p 18542:18542/udp \
 		-p 8080:8080/tcp \
+		-p 9001:9001/tcp \
 		"${REGISTRY}/${APP}:${TAG}" ;
 
 run-ui: build-ui

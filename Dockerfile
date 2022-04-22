@@ -12,10 +12,12 @@ COPY ./go.mod /go/src/${PROJECT}/go.mod
 
 COPY ./static /go/src/${PROJECT}/static
 COPY ./templates /go/src/${PROJECT}/templates
-COPY ./vendor /go/src/${PROJECT}/vendor
+#COPY ./vendor /go/src/${PROJECT}/vendor
 
 
 COPY ./batrium /go/src/${PROJECT}/batrium
+COPY ./metrics /go/src/${PROJECT}/metrics
+
 
 WORKDIR /go/src/${PROJECT}
 
@@ -37,7 +39,7 @@ RUN go build -v \
 RUN find /go/src -type d
 
 # final stage
-FROM alpine:3.14.2
+FROM alpine:3.15.3
 
 RUN apk update && apk upgrade
 WORKDIR /app
