@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="L.Icon" width="24" height="24" viewBox="0 0 24 24">
+  <g id="ic_menu" transform="translate(0 1)">
+    <path id="ic_menu-2" data-name="ic_menu" d="M11,16a1,1,0,1,1,0-2h8a1,1,0,0,1,0,2ZM1,9A1,1,0,1,1,1,7H19a1,1,0,0,1,0,2ZM1,2A1,1,0,0,1,1,0H9A1,1,0,0,1,9,2Z" transform="translate(2 4)" fill="#fff"/>
+    <g id="bound_24" transform="translate(0 -1)">
+      <rect id="bound_24-2" data-name="bound_24" width="24" height="24" fill="none"/>
+      <text id="_24" data-name="24" transform="translate(12 16)" fill="none" font-size="12" font-family="SegoeUI, Segoe UI"><tspan x="-6.469" y="0">24</tspan></text>
+    </g>
+  </g>
+</svg>

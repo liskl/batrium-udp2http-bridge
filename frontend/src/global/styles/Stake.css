@@ -1,0 +1,495 @@
+.apexcharts-toolbar {
+  display: none !important;
+}
+.apexcharts-yaxis-texts-g text,
+.apexcharts-xaxis-texts-g text {
+  stroke: #d2d2d2 !important;
+}
+.view_all_button {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 3rem;
+}
+.StakeFirstSection {
+  padding: 4rem 0rem;
+}
+.StakeFirstSection .content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-gap: 2rem;
+}
+.StakeHex,
+.StakeShares {
+  color: #fff;
+}
+.StakeHex > h1,
+.StakeShares > h1 {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+.StakeHex > h1 {
+  margin-bottom: 2rem;
+}
+.StakeHex .box_container {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.StakeHex .box_container > * + * {
+  margin-top: 2rem;
+}
+.StakeHex {
+  display: flex;
+  flex-direction: column;
+}
+.StakeHex .box_wrapper {
+  background: #171717;
+  border-radius: 10px;
+  padding: 1.5rem;
+}
+.StakeHex .box_wrapper .top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.StakeHex .box_wrapper .top p {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #d2d2d2;
+}
+.StakeHex .box_wrapper .top p span {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 19px;
+  letter-spacing: 0em;
+  text-align: right;
+  color: #fff;
+}
+.StakeHex .box_wrapper .input_wrapper {
+  height: 60px;
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+}
+.StakeHex .box_wrapper .input_wrapper > * + * {
+  margin-left: 1rem;
+}
+.StakeHex .box_wrapper .input_wrapper input {
+  flex: 1;
+  height: 100%;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+}
+.StakeHex .box_wrapper .input_wrapper input::placeholder {
+  color: #fff;
+}
+.StakeHex .box_wrapper .input_wrapper .badge {
+  height: 28px;
+  width: 57px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 5px;
+  background: #363636;
+}
+.StakeHex .box_wrapper .input_wrapper .badge.no_color {
+  background-color: transparent;
+}
+.StakeHex .box_wrapper > p {
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 15px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #fefefe;
+  margin-top: 15px;
+}
+
+.StakeHex .box_input_wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 1rem;
+  align-items: flex-end;
+}
+.StakeHex .box_input_wrapper label {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 19px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #fff;
+}
+.StakeHex .box_input_wrapper input {
+  display: block;
+  width: 100%;
+  margin-top: 1rem;
+  height: 50px;
+  border-radius: 5px;
+  background: #171717;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 15px;
+  padding: 0rem 1rem;
+}
+.StakeHex .box_input_wrapper button {
+  height: 50px;
+
+  border-radius: 5px;
+  border: none;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(85.23deg, #326eff 0%, #ff1df4 100%);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0em;
+  text-align: left;
+  cursor: pointer;
+}
+.StakeShares {
+  display: flex;
+  flex-direction: column;
+}
+.StakeShares .box_inner > * + * {
+  margin-top: 0.7rem;
+}
+.StakeShares .box_inner {
+  padding: 2rem;
+  background: #171717;
+  margin-top: 2rem;
+  border-radius: 10px;
+}
+.StakeShares .box_inner .box_row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0a0a0a;
+  padding: 1.3rem 2rem;
+  border-radius: 10px;
+}
+.StakeShares .big_row_box {
+  background: #0a0a0a;
+  padding: 1.3rem 2rem;
+  border-radius: 10px;
+}
+.StakeShares .big_row_box .box_row {
+  padding: 15px 0rem;
+  border-radius: 0px;
+}
+
+.StakeShares .box_inner .box_row h1 {
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 21px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #fefefe;
+}
+.StakeShares .box_inner .box_row p {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 21px;
+  letter-spacing: 0em;
+  text-align: right;
+  color: #fefefe;
+}
+.StakeShares .box_inner .box_row p.green {
+  color: #1be717;
+}
+.StakeShares .big_row_box .box_row h1 {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 17px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+.StakeShares .big_row_box .box_row p {
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 17px;
+  letter-spacing: 0em;
+  text-align: right;
+}
+.StakeShares .big_row_box > *:last-child h1,
+.StakeShares .big_row_box > *:last-child p {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 21px;
+  letter-spacing: 0em;
+  text-align: left;
+}
+
+/* ExpiringStakes */
+.ExpiringChart {
+  padding-top: 1rem;
+}
+.ExpiringStakes {
+  background: #171717;
+  padding: 2rem;
+}
+.ExpiringStakes .top {
+  color: #fefefe;
+}
+.ExpiringStakes .top,
+.ExpiringStakes .top .buttons_wrapper {
+  display: flex;
+  align-items: center;
+}
+.ExpiringStakes .top {
+  justify-content: space-between;
+}
+.ExpiringStakes .top > h1 {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+  letter-spacing: 0em;
+  text-align: left;
+  color: #fefefe;
+}
+.ExpiringStakes .top button {
+  background: #0a0a0a;
+  height: 30px;
+  padding: 0rem 1rem;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+.ExpiringStakes .top button:first-child {
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+.ExpiringStakes .top button:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+.ExpiringStakes .top button.active {
+  background: #363636;
+}
+.ExpiringStakes .tracking_area,
+.ExpiringStakes .tracking_area .area {
+  display: flex;
+  color: #d2d2d2;
+  align-items: center;
+}
+.ExpiringStakes .tracking_area {
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+.ExpiringStakes .tracking_area > * + * {
+  margin-left: 10px;
+}
+.ExpiringStakes .tracking_area .area p {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 16px;
+  letter-spacing: 0em;
+  text-align: left;
+  margin-left: 10px;
+}
+
+/* TableStake */
+.TableStake {
+  margin-top: 4rem;
+}
+.TableStake .content > h1 {
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 32px;
+  letter-spacing: 0em;
+  text-align: left;
+  margin-bottom: 2rem;
+  color: #fefefe;
+}
+.table_wrapper {
+  background: #171717;
+  border-radius: 8px;
+}
+.table_wrapper .sub_heading,
+.table_wrapper .body_area ul,
+.table_wrapper .main_head {
+  color: #fff;
+  display: grid;
+  grid-template-columns: 0.6fr 0.6fr 0.8fr 0.6fr 1fr 0.6fr 0.6fr 0.7fr 0.7fr;
+}
+
+.table_wrapper .sub_heading li,
+.table_wrapper .body_area li,
+.table_wrapper .main_head li {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 21px;
+  letter-spacing: 0em;
+  text-align: left;
+  padding: 1rem 0rem;
+}
+.table_wrapper .sub_heading li:nth-child(1),
+.table_wrapper .body_area ul li:nth-child(1) {
+  padding-left: 1rem;
+}
+.table_wrapper .sub_heading li:nth-child(9),
+.table_wrapper .body_area ul li:nth-child(9) {
+  padding-right: 1rem;
+}
+.table_wrapper .main_head li {
+  padding: 2rem 0rem;
+}
+.table_wrapper .body_area li {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 19px;
+  letter-spacing: 0em;
+}
+.table_wrapper .sub_heading li:nth-child(3),
+.table_wrapper .sub_heading li:nth-child(4),
+.table_wrapper .sub_heading li:nth-child(7),
+.table_wrapper .sub_heading li:nth-child(8) {
+  border-right: 1px solid #363636;
+}
+
+.table_wrapper .sub_heading li:nth-child(5),
+.table_wrapper .sub_heading li:nth-child(8),
+.table_wrapper .sub_heading li:nth-child(9),
+.table_wrapper .body_area li:nth-child(5),
+.table_wrapper .body_area li:nth-child(8),
+.table_wrapper .body_area li:nth-child(9) {
+  padding-left: 1rem;
+}
+.table_wrapper .sub_heading li:nth-child(9),
+.table_wrapper .body_area li:nth-child(9) {
+  text-align: right;
+}
+.table_wrapper .sub_heading li:nth-child(4),
+.table_wrapper .body_area li:nth-child(4) {
+  text-align: center;
+}
+.table_wrapper .sub_heading li {
+  border-bottom: 1px solid #363636;
+}
+.table_wrapper .body_area li:nth-child(4) {
+  color: #1be717;
+}
+.table_wrapper .main_head li:nth-child(1) {
+  grid-column: span 3;
+  border-right: 1px solid #363636;
+  border-bottom: 1px solid #363636;
+  text-align: center;
+}
+.table_wrapper .main_head li:nth-child(3) {
+  grid-column: span 3;
+  border-right: 1px solid #363636;
+  border-bottom: 1px solid #363636;
+  text-align: center;
+}
+.table_wrapper .main_head li:nth-child(2) {
+  border-right: 1px solid #363636;
+}
+
+.table_wrapper .main_head li:nth-child(4) {
+  grid-column: span 2;
+
+  border-bottom: 1px solid #363636;
+  text-align: center;
+}
+@media screen and (max-width: 970px) {
+  .TableStake {
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .TableStake {
+    overflow: auto;
+  }
+  .TableStake > * {
+    width: 1300px;
+  }
+}
+@media screen and (max-width: 900px) {
+  .StakeFirstSection .content {
+    grid-template-columns: 1fr;
+  }
+  .StakeFirstSection .content > *:first-child {
+    order: 2;
+  }
+  .StakeFirstSection .content > *:last-child {
+    order: 1;
+  }
+}
+
+@media screen and (max-width: 550px) {
+  .StakeHex .box_input_wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+  }
+  .StakeHex .box_input_wrapper > *:first-child,
+  .StakeHex .box_input_wrapper > *:nth-child(2) {
+    grid-column: span 2;
+  }
+  .StakeHex .box_input_wrapper > *:last-child {
+    grid-column: span 4;
+  }
+  .StakeHex .box_wrapper .input_wrapper input {
+    width: 100%;
+  }
+  .Header .content .select_header_wrapper {
+    position: absolute;
+    width: 95%;
+    left: 50%;
+    top: 90px;
+    background: #171717;
+    transform: translateX(-50%);
+  }
+  .Header .content .select_header_wrapper select {
+    width: 100%;
+  }
+}
+@media screen and (max-width: 450px) {
+  .ExpiringStakes,
+  .StakeShares .box_inner {
+    padding: 2rem 1rem;
+  }
+  .ExpiringStakes .top {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .ExpiringStakes .top > h1,
+  .TableStake .content > h1,
+  .StakeHex > h1,
+  .StakeShares > h1 {
+    font-size: 20px;
+    margin-bottom: 1rem;
+  }
+
+  .StakeShares .box_inner .box_row h1,
+  .StakeShares .big_row_box .box_row p,
+  .StakeShares .box_inner .box_row p {
+    font-size: 12px;
+  }
+  .StakeHex .box_wrapper .input_wrapper .badge.no_color {
+    margin-left: 0px;
+  }
+  .StakeHex .box_wrapper .input_wrapper .badge {
+    margin-left: 0px;
+    font-size: 12px;
+    width: 40px;
+  }
+  .StakeHex .box_wrapper .input_wrapper input {
+    font-size: 13px;
+  }
+}
