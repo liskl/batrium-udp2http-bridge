@@ -21,7 +21,17 @@ const Header = ({ active }) => {
             <Link to="/">
               <li className={`${active == 2 && "active"}`}>
                 <img src={State} alt="" />
-                <p>Statistics</p>
+                <p>Overview</p>
+              </li>
+            </Link>
+            <Link to="/Telemetry">
+              <li className={`${active == 3 && "active"}`}>
+                <p>Telemetry</p>
+              </li>
+            </Link>
+            <Link to="/HardwareConfiguration">
+              <li className={`${active == 4 && "active"}`}>
+                <p>Hardware Configuration</p>
               </li>
             </Link>
           </ul>

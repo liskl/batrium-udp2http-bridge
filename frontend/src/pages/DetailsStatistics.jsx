@@ -44,7 +44,7 @@ const DetailsStatistics = () => {
   return (
     <div className="Stake Statistics">
       {/* header */}
-      <Header active={2} />
+      <Header />
 
       <div className="Details_wrapper common_width">
         <h1>Details</h1>
