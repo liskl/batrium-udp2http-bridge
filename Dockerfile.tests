@@ -29,7 +29,7 @@ RUN go get github.com/liskl/batrium-udp2http-bridge/client \
 RUN find /go/src -type d
 
 # final stage
-FROM alpine:3.15
+FROM alpine:3
 WORKDIR /app
 COPY --from=build-env /go/src/github.com/liskl/batrium-udp2http-bridge/client /app/
 CMD ["/app/client"]
