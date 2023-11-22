@@ -50,7 +50,7 @@ build-ui: clean-ui
 	 --build-arg "BUILD_TIME=${BUILD_TIME}" \
 	 --build-arg "COMMIT=${COMMIT}" \
 	 --build-arg "RELEASE=${RELEASE}" \
-	 -t "${REGISTRY}/${APP}:${TAG}" -f Dockerfile.ui . ; \
+	 -t "${REGISTRY}/${APP}-ui:${TAG}" -f Dockerfile.ui . ; \
 	docker push "${REGISTRY}/${APP}-ui:${TAG}";
 
 
@@ -80,11 +80,15 @@ run-ui: build-ui
 
 
 test:
-	 cd ./src/github.com/liskl/${APP} \
-	 && clear; go test -v ./... \
-	 && mkdir -p ./tests \
-	 && go test -coverprofile tests/cp.out \
-	 && go tool cover -html=tests/cp.out ;
+	go test -v ./... \
+	&& mkdir -p ./tests \
+	&& go test -coverprofile tests/cp.out \
+	&& go tool cover -html=tests/cp.out ;
+
+snyk: build-ui
+	snyk test \
+	&& snyk test --docker "${REGISTRY}/${APP}-ui:${TAG}" --file="Dockerfile" \
+	&& snyk test --docker "${REGISTRY}/${APP}:${TAG}" --file="Dockerfile" ;
 
 release: test
 	docker tag "${REGISTRY}/${APP}:${TAG}" "${REGISTRY}/${APP}:${RELEASE}";

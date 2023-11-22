@@ -2,7 +2,12 @@ package batrium
 
 import (
 	//"encoding/json"
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
+	"fmt"
+	"hash"
+	"math"
 )
 
 // Btoi converts boolean to uint8
@@ -11,6 +16,31 @@ func Btoi(b bool) uint8 {
 		return uint8(1)
 	}
 	return uint8(0)
+}
+
+func itob(i int) bool {
+	if i == 1 {
+		return bool(true)
+	}
+	return bool(false)
+}
+
+// Float32frombytes converts []bytes form float32 to float
+func Float32frombytes(bytes []byte) float32 {
+	bits := binary.LittleEndian.Uint32(bytes)
+	float := math.Float32frombits(bits)
+	return float
+}
+
+// SHA256 hashes using sha256 algorithm
+func SHA256(text string) string {
+	algorithm := sha256.New()
+	return stringHasher(algorithm, text)
+}
+
+func stringHasher(algorithm hash.Hash, text string) string {
+	algorithm.Write([]byte(text))
+	return hex.EncodeToString(algorithm.Sum(nil))
 }
 
 // SystemDiscoveryInfo is the MessageType for 0x5732
@@ -106,11 +136,14 @@ type IndividualCellMonitorFullInfo struct {
 	RepeatCellV             uint8  `json:"RepeatCellV"`
 }
 
-func (icmfi IndividualCellMonitorFullInfo) getMessageType() uint16 {
-	return uint16(0x4232)
+func (icmfi *IndividualCellMonitorFullInfo) getMessageType() string {
+
+	return fmt.Sprintf("%s", []byte(icmfi.MessageType))
+
+	//return uint16(0x4232)
 }
 
-func (icmfi IndividualCellMonitorFullInfo) getData() []byte {
+func (icmfi *IndividualCellMonitorFullInfo) getData() []byte {
 
 	// create the byte slice.
 	// append all data to the byte slice

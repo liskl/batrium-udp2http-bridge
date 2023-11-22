@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -83,10 +84,16 @@ func init() {
 
 	// Only log the info severity or above.
 	//log.SetLevel(log.WarnLevel)
-	//log.SetLevel(log.InfoLevel)
 	log.SetLevel(log.InfoLevel)
+	//log.SetLevel(log.DebugLevel)
 	//log.SetLevel(log.TraceLevel)
 
+}
+
+func Base64Encode(message []byte) []byte {
+	b := make([]byte, base64.StdEncoding.EncodedLen(len(message)))
+	base64.StdEncoding.Encode(b, message)
+	return b
 }
 
 // Float32frombytes converts []bytes form float32 to float

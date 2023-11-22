@@ -1,6 +1,6 @@
 module github.com/liskl/batrium-udp2http-bridge
 
-go 1.15
+go 1.16
 
 require (
 	github.com/go-kit/kit v0.12.0

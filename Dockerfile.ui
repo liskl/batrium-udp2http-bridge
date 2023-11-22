@@ -1,11 +1,11 @@
 # build stage
 
-FROM alpine:3.14
+FROM alpine:3.14.2
 
 LABEL maintainer="NGINX Docker Maintainers <docker-maint@nginx.com>"
 
-ENV NGINX_VERSION 1.19.3
-ENV NJS_VERSION   0.4.4
+ENV NGINX_VERSION 1.21.3
+ENV NJS_VERSION   0.6.2
 ENV PKG_RELEASE   1
 
 RUN set -x \
